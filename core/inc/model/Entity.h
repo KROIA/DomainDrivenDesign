@@ -8,15 +8,12 @@ namespace DDD
 	class Entity : public IID
 	{
 	public:
-		Entity(ID id)
+		Entity(const ID id)
 			: IID(id)
 		{
 
 		}
-		~Entity()
-		{
-
-		}
+		~Entity() override = default;
 
 		/*virtual bool addValue(const std::shared_ptr<ValueObject>& value)
 		{

@@ -33,16 +33,16 @@ private:
 	std::shared_ptr<Leg> m_leg;
 };
 
-class Person2 : public DDD::Aggregate
+class Animal : public DDD::Aggregate
 {
 public:
-	Person2(DDD::ID id)
+	Animal(DDD::ID id)
 		: Aggregate(id)
 	{
 		m_leg = std::make_shared<Leg>(1);
 		addEntity(m_leg);
 	}
-	~Person2() {}
+	~Animal() {}
 
 private:
 	std::shared_ptr<Leg> m_leg;
@@ -56,14 +56,25 @@ public:
 	{}
 	~PersonFactory() {}
 protected:
-	
-	
-
 	std::shared_ptr<Person> createAggregate(std::shared_ptr<DDD::FactoryCreationData> data) override
 	{
 		return std::make_shared<Person>(++m_idCounter);
 	}
-
+private:
+	DDD::ID m_idCounter = 0;
+};
+class AnimalFactory : public DDD::AggregateFactory<Animal>
+{
+public:
+	AnimalFactory(DDD::Repository<Animal>& repo, DDD::ID id)
+		: AggregateFactory(repo, id)
+	{}
+	~AnimalFactory() {}
+protected:
+	std::shared_ptr<Animal> createAggregate(std::shared_ptr<DDD::FactoryCreationData> data) override
+	{
+		return std::make_shared<Animal>(++m_idCounter);
+	}
 private:
 	DDD::ID m_idCounter = 0;
 };
@@ -83,6 +94,21 @@ protected:
 		return std::make_shared<DDD::ServiceExecutionResult>();
 	}
 };
+class AnimalService : public DDD::Service<Animal>
+{
+public:
+	AnimalService(DDD::ID id)
+		: Service(id)
+	{}
+	~AnimalService() {}
+
+protected:
+	std::shared_ptr<DDD::ServiceExecutionResult> execute(const std::unordered_map<DDD::ID, std::shared_ptr<Animal>>& repo) override
+	{
+		std::cout << "AnimalService::execute " << repo.size() << std::endl;
+		return std::make_shared<DDD::ServiceExecutionResult>();
+	}
+};
 
 class PersonDomain : public DDD::Domain<Person>
 {
@@ -90,10 +116,23 @@ public:
 	PersonDomain()
 		: Domain()
 	{
-		std::shared_ptr<PersonService> personService = std::make_shared<PersonService>(1);
-		addService(personService);
+		//std::shared_ptr<PersonService> personService = std::make_shared<PersonService>(1);
+		//addService(personService);
+		createService<PersonService>(1);
+		createFactory<PersonFactory>(1);
 	}
 	~PersonDomain() {}
+};
+class AnimalDomain : public DDD::Domain<Animal>
+{
+public:
+	AnimalDomain()
+		: Domain()
+	{
+		createService<AnimalService>(1);
+		createFactory<AnimalFactory>(1); 
+	}
+	~AnimalDomain() {}
 };
 
 
@@ -116,19 +155,18 @@ int main(int argc, char* argv[]){
 		widget->show();
 #endif
 
-	DDD::Model<PersonDomain> model;
-	PersonDomain& personDomain = model.getDomain<PersonDomain>();
-	DDD::ID facID = personDomain.createFactory<PersonFactory>();
-	DDD::ID personID = personDomain.executeFactoryCreateInstance(facID, nullptr);
 
-	std::shared_ptr<DDD::ServiceExecutionResult> result = model.executeService<PersonDomain>(1);
+	DDD::Model<PersonDomain, AnimalDomain> model;
+	DDD::ID personID = model.executeFactoryCreateInstance<PersonDomain>(1, nullptr);
+	DDD::ID animalID = model.executeFactoryCreateInstance<AnimalDomain>(1, nullptr);
 
-	personDomain.executeFactoryRemoveInstance(facID, personID);
+	std::shared_ptr<DDD::ServiceExecutionResult> personResult = model.executeService<PersonDomain>(1);
+	std::shared_ptr<DDD::ServiceExecutionResult> animalResult = model.executeService<AnimalDomain>(1);
 
-	std::shared_ptr<DDD::ServiceExecutionResult> result2 = model.executeService<PersonDomain>(1);
+	//personDomain.executeFactoryRemoveInstance(personID, personID);
 
 
-	auto instances = model.getDomains();
+	//auto instances = model.getDomains();
 
 	
 

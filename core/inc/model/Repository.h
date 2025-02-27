@@ -13,33 +13,68 @@ namespace DDD
 	class Repository
 	{
 	public:
-		Repository()
+		typedef T AggregateType;
+		Repository() = default;
+		Repository(const Repository& other) = delete;
+		Repository(Repository&& other) noexcept
+			: m_storage(std::move(other.m_storage))
 		{
+			
+		}
+		~Repository() = default;
 
-		}
-		~Repository()
+		bool add(const std::shared_ptr<T>& aggregate)
 		{
-
+			if (!m_storage.contains(aggregate->getID()))
+			{
+				m_storage.insert({ aggregate->getID(), aggregate });
+				return true;
+			}
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			Logger::logError("Repository<"+ std::string(typeid(T).name()) +">::add(): Aggregate with ID " + std::to_string(aggregate->getID()) + " already exists in the repository.");
+#endif
+			return false;
 		}
-
-		void add(const std::shared_ptr<T>& aggregate)
+		bool remove(ID id)
 		{
-			m_storage[aggregate->getID()] = aggregate;
+			auto it = m_storage.find(id);
+			if (it != m_storage.end())
+			{
+				m_storage.erase(it);
+				return true;
+			}
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			Logger::logWarning("Repository<" + std::string(typeid(T).name()) + ">::remove(): Aggregate with ID " + std::to_string(id) + " does not exists in the repository.");
+#endif
+			return false;
 		}
-		void remove(ID id)
+		bool replace(const std::shared_ptr<T>& aggregate)
 		{
-			m_storage.erase(id);
+			auto it = m_storage.find(aggregate->getID());
+			if (it != m_storage.end())
+			{
+				it->second = aggregate;
+				return true;
+			}
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			Logger::logWarning("Repository<" + std::string(typeid(T).name()) + ">::replace(): Aggregate with ID " + std::to_string(aggregate->getID()) + " does not exists in the repository.");
+#endif
+			return false;
 		}
-		std::shared_ptr<T> get(ID id)
+		[[nodiscard]] std::shared_ptr<T> get(ID id) const
 		{
 			auto it = m_storage.find(id);
 			if (it != m_storage.end())
 			{
 				return it->second;
 			}
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			Logger::logError("Repository<" + std::string(typeid(T).name()) + ">::get(): Aggregate with ID " + std::to_string(id) + " does not exists in the repository.");
+#endif
 			return nullptr;
 		}
-		std::vector<std::shared_ptr<T>> getAll() const
+		
+		[[nodiscard]] std::vector<std::shared_ptr<T>> getAll() const
 		{
 			std::vector<std::shared_ptr<T>> result;
 			for (auto& pair : m_storage)
@@ -53,27 +88,27 @@ namespace DDD
 			m_storage.clear();
 		}
 
-		size_t size() const
+		[[nodiscard]] size_t size() const
 		{
 			return m_storage.size();
 		}
-		bool empty() const
+		[[nodiscard]] bool empty() const
 		{
 			return m_storage.empty();
 		}
-		bool contains(ID id) const
+		[[nodiscard]] bool contains(ID id) const
 		{
-			return m_storage.find(id) != m_storage.end();
+			return m_storage.exists(id);
 		}
-		bool contains(const T& aggregate) const
+		[[nodiscard]] bool contains(const T& aggregate) const
 		{
 			return contains(aggregate.id());
 		}
-		bool contains(const std::shared_ptr<T>& aggregate) const
+		[[nodiscard]] bool contains(const std::shared_ptr<T>& aggregate) const
 		{
 			return contains(aggregate->id());
 		}
-		bool contains(const T* aggregate) const
+		[[nodiscard]] bool contains(const T* aggregate) const
 		{
 			return contains(aggregate->id());
 		}

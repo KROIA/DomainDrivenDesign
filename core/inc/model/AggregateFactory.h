@@ -1,17 +1,17 @@
 #pragma once
 #include "DDD_base.h"
-#include "Aggregate.h"
 #include "Repository.h"
 #include "utilities/IID.h"
-
 
 namespace DDD
 {
 	class FactoryCreationData
 	{
 	public:
-		FactoryCreationData() {}
-		virtual ~FactoryCreationData() {}
+		FactoryCreationData() = default;
+		FactoryCreationData(const FactoryCreationData& other) = default;
+		FactoryCreationData(FactoryCreationData&& other) noexcept = default;
+		virtual ~FactoryCreationData() = default;
 	};
 
 	template <DerivedFromAggregate T>
@@ -20,9 +20,9 @@ namespace DDD
 		template <DerivedFromAggregate AGG>
 		friend class Domain;
 	public:
-		
-		virtual ~AggregateFactory() {}
-		AggregateFactory(Repository<T>& repo, ID id)
+		typedef T AggregateType;
+
+		AggregateFactory(Repository<T>& repo, const ID id)
 			: IID(id)
 			, m_repository(repo)
 		{}
@@ -33,9 +33,9 @@ namespace DDD
 		
 
 		virtual std::shared_ptr<T> createAggregate(std::shared_ptr<FactoryCreationData> data) = 0;
-		virtual void removeAggregate(ID id)
+		virtual bool removeAggregate(const ID id)
 		{
-			m_repository.remove(id);
+			return m_repository.remove(id);
 		}
 
 
@@ -46,14 +46,21 @@ namespace DDD
 		ID createAggregateInternal(std::shared_ptr<FactoryCreationData> data)
 		{
 			std::shared_ptr<T> aggregate = createAggregate(data);
-			m_repository.add(aggregate);
-			return aggregate->getID();
+			if(m_repository.add(aggregate))
+				return aggregate->getID();
+	
+			return INVALID_ID;
 		}
-		void removeAggregateInternal(ID id)
+		ID replaceAggregateInternal(std::shared_ptr<FactoryCreationData> data)
 		{
-			removeAggregate(id);
+			std::shared_ptr<T> aggregate = createAggregate(data);
+			if(m_repository.replace(aggregate))
+				return aggregate->getID();
+			return INVALID_ID;
 		}
-
-		
+		bool removeAggregateInternal(const ID id)
+		{
+			return removeAggregate(id);
+		}		
 	};
 }

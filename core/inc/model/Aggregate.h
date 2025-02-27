@@ -7,21 +7,20 @@ namespace DDD
 	class Aggregate : public Entity
 	{
 	public:
-		Aggregate(ID id)
+		explicit Aggregate(const ID id)
 			: Entity(id)
 		{}
-		~Aggregate(){}
 
 		virtual bool addEntity(const std::shared_ptr<Entity>& entity)
 		{
-			if (m_entities.find(entity->getID()) == m_entities.end())
+			if (m_entities.contains(entity->getID()))
 			{
 				m_entities.insert({ entity->getID(), entity });
 				return true;
 			}
 			return false;
 		}
-		virtual bool removeEntity(ID id)
+		virtual bool removeEntity(const ID id)
 		{
 			auto it = m_entities.find(id);
 			if (it != m_entities.end())
@@ -31,7 +30,7 @@ namespace DDD
 			}
 			return false;
 		}
-		virtual std::shared_ptr<Entity> getEntity(ID id)
+		[[nodiscard]] virtual std::shared_ptr<Entity> getEntity(const ID id)
 		{
 			auto it = m_entities.find(id);
 			if (it != m_entities.end())

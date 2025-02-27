@@ -9,8 +9,10 @@ namespace DDD
 	class ServiceExecutionResult
 	{
 	public:
-		ServiceExecutionResult() {}
-		virtual ~ServiceExecutionResult() {}
+		ServiceExecutionResult() = default;
+		ServiceExecutionResult(const ServiceExecutionResult&) = default;
+		ServiceExecutionResult(ServiceExecutionResult&&) = default;
+		virtual ~ServiceExecutionResult() = default;
 	};
 
 	template <DerivedFromAggregate T>
@@ -19,6 +21,7 @@ namespace DDD
 		template <DerivedFromAggregate AGG>
 		friend class Domain;
 	public:
+		typedef T AggregateType;
 		Service(ID id)
 			: IID(id)
 		{}
@@ -31,7 +34,7 @@ namespace DDD
 		{
 			std::unordered_map<ID, std::shared_ptr<T>> cRepo;
 			std::vector<std::shared_ptr<T>> all = repo.getAll();
-			for (auto element : all)
+			for (const auto &element : all)
 			{
 				cRepo[element->getID()] = element;
 			}
