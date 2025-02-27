@@ -9,11 +9,11 @@
 
 namespace DDD
 {
-	template <DerivedFromAggregate T>
+	template <DerivedFromAggregate AGG>
 	class Repository
 	{
 	public:
-		typedef T AggregateType;
+		typedef AGG AggregateType;
 		Repository() = default;
 		Repository(const Repository& other) = delete;
 		Repository(Repository&& other) noexcept
@@ -23,7 +23,7 @@ namespace DDD
 		}
 		~Repository() = default;
 
-		bool add(const std::shared_ptr<T>& aggregate)
+		bool add(const std::shared_ptr<AGG>& aggregate)
 		{
 			if (!m_storage.contains(aggregate->getID()))
 			{
@@ -31,7 +31,7 @@ namespace DDD
 				return true;
 			}
 #if LOGGER_LIBRARY_AVAILABLE == 1
-			Logger::logError("Repository<"+ std::string(typeid(T).name()) +">::add(): Aggregate with ID " + std::to_string(aggregate->getID()) + " already exists in the repository.");
+			Logger::logError("Repository<"+ std::string(typeid(AGG).name()) +">::add(): Aggregate with ID " + std::to_string(aggregate->getID()) + " already exists in the repository.");
 #endif
 			return false;
 		}
@@ -44,11 +44,11 @@ namespace DDD
 				return true;
 			}
 #if LOGGER_LIBRARY_AVAILABLE == 1
-			Logger::logWarning("Repository<" + std::string(typeid(T).name()) + ">::remove(): Aggregate with ID " + std::to_string(id) + " does not exists in the repository.");
+			Logger::logWarning("Repository<" + std::string(typeid(AGG).name()) + ">::remove(): Aggregate with ID " + std::to_string(id) + " does not exists in the repository.");
 #endif
 			return false;
 		}
-		bool replace(const std::shared_ptr<T>& aggregate)
+		bool replace(const std::shared_ptr<AGG>& aggregate)
 		{
 			auto it = m_storage.find(aggregate->getID());
 			if (it != m_storage.end())
@@ -57,11 +57,11 @@ namespace DDD
 				return true;
 			}
 #if LOGGER_LIBRARY_AVAILABLE == 1
-			Logger::logWarning("Repository<" + std::string(typeid(T).name()) + ">::replace(): Aggregate with ID " + std::to_string(aggregate->getID()) + " does not exists in the repository.");
+			Logger::logWarning("Repository<" + std::string(typeid(AGG).name()) + ">::replace(): Aggregate with ID " + std::to_string(aggregate->getID()) + " does not exists in the repository.");
 #endif
 			return false;
 		}
-		[[nodiscard]] std::shared_ptr<T> get(ID id) const
+		[[nodiscard]] std::shared_ptr<AGG> get(ID id) const
 		{
 			auto it = m_storage.find(id);
 			if (it != m_storage.end())
@@ -69,14 +69,14 @@ namespace DDD
 				return it->second;
 			}
 #if LOGGER_LIBRARY_AVAILABLE == 1
-			Logger::logError("Repository<" + std::string(typeid(T).name()) + ">::get(): Aggregate with ID " + std::to_string(id) + " does not exists in the repository.");
+			Logger::logError("Repository<" + std::string(typeid(AGG).name()) + ">::get(): Aggregate with ID " + std::to_string(id) + " does not exists in the repository.");
 #endif
 			return nullptr;
 		}
 		
-		[[nodiscard]] std::vector<std::shared_ptr<T>> getAll() const
+		[[nodiscard]] std::vector<std::shared_ptr<AGG>> getAll() const
 		{
-			std::vector<std::shared_ptr<T>> result;
+			std::vector<std::shared_ptr<AGG>> result;
 			for (auto& pair : m_storage)
 			{
 				result.push_back(pair.second);
@@ -100,22 +100,22 @@ namespace DDD
 		{
 			return m_storage.exists(id);
 		}
-		[[nodiscard]] bool contains(const T& aggregate) const
+		[[nodiscard]] bool contains(const AGG& aggregate) const
 		{
 			return contains(aggregate.id());
 		}
-		[[nodiscard]] bool contains(const std::shared_ptr<T>& aggregate) const
+		[[nodiscard]] bool contains(const std::shared_ptr<AGG>& aggregate) const
 		{
 			return contains(aggregate->id());
 		}
-		[[nodiscard]] bool contains(const T* aggregate) const
+		[[nodiscard]] bool contains(const AGG* aggregate) const
 		{
 			return contains(aggregate->id());
 		}
 
 		
 	protected:
-		std::unordered_map<ID, std::shared_ptr<T>> m_storage;
+		std::unordered_map<ID, std::shared_ptr<AGG>> m_storage;
 	};
 }
 

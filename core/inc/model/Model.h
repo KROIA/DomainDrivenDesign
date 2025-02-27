@@ -36,7 +36,7 @@ namespace DDD
 		using FindDerivedFromT = typename FindDerivedFrom<Base, Ts...>::Type;
 
 	public:
-		static constexpr size_t domainCount = sizeof...(Ts);
+		static constexpr size_t aggregateTypeCount = sizeof...(Ts);
 
 		// Default constructor initializes each instance
 		Model() {
@@ -146,6 +146,6 @@ namespace DDD
 		}
 		
 		using VariantType = std::variant<Ts...>;
-		std::array<VariantType, domainCount> m_domains; // Store instances in a variant array
+		std::array<VariantType, aggregateTypeCount> m_domains; // Store instances in a variant array
 	};
 }

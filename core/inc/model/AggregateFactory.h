@@ -14,15 +14,15 @@ namespace DDD
 		virtual ~FactoryCreationData() = default;
 	};
 
-	template <DerivedFromAggregate T>
+	template <DerivedFromAggregate AGG>
 	class AggregateFactory : public IID
 	{
 		template <DerivedFromAggregate AGG>
 		friend class Domain;
 	public:
-		typedef T AggregateType;
+		typedef AGG AggregateType;
 
-		AggregateFactory(Repository<T>& repo, const ID id)
+		AggregateFactory(Repository<AGG>& repo, const ID id)
 			: IID(id)
 			, m_repository(repo)
 		{}
@@ -32,20 +32,20 @@ namespace DDD
 	protected:
 		
 
-		virtual std::shared_ptr<T> createAggregate(std::shared_ptr<FactoryCreationData> data) = 0;
+		virtual std::shared_ptr<AGG> createAggregate(std::shared_ptr<FactoryCreationData> data) = 0;
 		virtual bool removeAggregate(const ID id)
 		{
 			return m_repository.remove(id);
 		}
 
 
-		Repository<T>& m_repository;
+		Repository<AGG>& m_repository;
 
 	private:
 		
 		ID createAggregateInternal(std::shared_ptr<FactoryCreationData> data)
 		{
-			std::shared_ptr<T> aggregate = createAggregate(data);
+			std::shared_ptr<AGG> aggregate = createAggregate(data);
 			if(m_repository.add(aggregate))
 				return aggregate->getID();
 	
@@ -53,7 +53,7 @@ namespace DDD
 		}
 		ID replaceAggregateInternal(std::shared_ptr<FactoryCreationData> data)
 		{
-			std::shared_ptr<T> aggregate = createAggregate(data);
+			std::shared_ptr<AGG> aggregate = createAggregate(data);
 			if(m_repository.replace(aggregate))
 				return aggregate->getID();
 			return INVALID_ID;
