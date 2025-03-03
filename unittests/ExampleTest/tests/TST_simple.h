@@ -7,7 +7,7 @@
 #include "TestObjs/Cat.h"
 
 
-using AnimalModel = DDD::Model<Animal>;
+using AnimalModel = DDD::Model<Animal, Cat>;
 
 class TST_simple : public UnitTest::Test
 {
@@ -29,6 +29,7 @@ private:
 	std::shared_ptr<AnimalFactory> animalFactory;
 	std::shared_ptr<CatFactory> catFactory;
 	std::shared_ptr<AnimalService> animalService;
+	std::shared_ptr<CatService> catService;
 
 	// Tests
 	TEST_FUNCTION(createFactories)
@@ -36,8 +37,8 @@ private:
 		TEST_START;
 		catFactory = model.createFactory<CatFactory>();
 		TEST_ASSERT(catFactory != nullptr);
-		//animalFactory = model.createFactory<AnimalFactory>();
-		//TEST_ASSERT(animalFactory != nullptr);
+		animalFactory = model.createFactory<AnimalFactory>();
+		TEST_ASSERT(animalFactory != nullptr);
 
 		
 	}
@@ -47,6 +48,9 @@ private:
 		TEST_START;
 		animalService = model.createService<AnimalService>();
 		TEST_ASSERT(animalService != nullptr);
+
+		catService = model.createService<CatService>();
+		TEST_ASSERT(catService != nullptr);
 	}
 
 
@@ -66,7 +70,8 @@ private:
 	{
 		TEST_START;
 
-		std::shared_ptr<DDD::ServiceExecutionResult> result = model.executeService<AnimalService>();
+		std::shared_ptr<DDD::ServiceExecutionResult> result1 = model.executeService<AnimalService>();
+		std::shared_ptr<DDD::ServiceExecutionResult> result2 = model.executeService<CatService>();
 	}
 
 };

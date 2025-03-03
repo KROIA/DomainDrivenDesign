@@ -62,20 +62,42 @@ public:
 
 };
 
-class CatFactory : public DDD::AggregateFactory<Animal>
+class CatFactory : public DDD::AggregateFactory<Cat>
 {
 public:
-	CatFactory(DDD::Repository<Animal>* repo, DDD::UniqueIDDomain* idDomain)
+	CatFactory(DDD::Repository<Cat>* repo, DDD::UniqueIDDomain* idDomain)
 		: AggregateFactory(repo, idDomain)
 	{}
 	~CatFactory() {}
 
-	std::shared_ptr<Animal> createAggregate()
+	std::shared_ptr<Cat> createAggregate()
 	{
 		return registerInstance(std::make_shared<Cat>(getNextID()));
 	}
 protected:
 
 private:
+
+};
+
+class CatService : public DDD::AggregateService<Cat>
+{
+public:
+	CatService(DDD::Repository<Cat>* repository)
+		: AggregateService(repository)
+	{}
+	~CatService() {}
+
+	std::shared_ptr<DDD::ServiceExecutionResult> execute() override
+	{
+		std::cout << "AnimalService::execute " << getRepository()->size() << std::endl;
+		std::vector<std::shared_ptr<Cat>> animals = getAggregates();
+		for (const auto& animal : animals)
+		{
+			std::cout << animal->getInfo() << "\n";
+		}
+		return std::make_shared<DDD::ServiceExecutionResult>();
+	}
+protected:
 
 };
