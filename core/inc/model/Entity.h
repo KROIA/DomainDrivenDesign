@@ -1,55 +1,45 @@
 #pragma once
 #include "DDD_base.h"
+#include <QObject>
 #include "utilities/IID.h"
 #include "ValueObject.h"
 
 namespace DDD
 {
-	class Entity : public IID
+	class Entity : public QObject, public IID
 	{
+		Q_OBJECT
 	public:
 		Entity(const ID id)
 			: IID(id)
+			, m_alive(true)
 		{
 
 		}
 		~Entity() override = default;
 
-		/*virtual bool addValue(const std::shared_ptr<ValueObject>& value)
+		void markDeleted()
 		{
-			if (m_values.find(value->getID()) == m_values.end())
-			{
-				m_values.insert({ value->getID(), value });
-				return true;
-			}
-			return false;
+			m_alive = false;
+			emit deleteMarked(getID());
+		}
+		bool isAlive() const
+		{
+			return m_alive;
 		}
 
-		virtual bool removeValue(ID id)
+	signals:
+		void deleteMarked(ID entityID);
+		void dataChanged(ID entityID);
+
+	protected:
+		void emitDataChanged()
 		{
-			auto it = m_values.find(id);
-			if (it != m_values.end())
-			{
-				m_values.erase(it);
-				return true;
-			}
-			return false;
+			emit dataChanged(getID());
 		}
-
-		virtual std::shared_ptr<ValueObject> getValue(ID id)
-		{
-			auto it = m_values.find(id);
-			if (it != m_values.end())
-			{
-				return it->second;
-			}
-			return nullptr;
-		}*/
-
-
 
 	private:
-		//std::unordered_map<ID, std::shared_ptr<ValueObject>> m_values;
+		bool m_alive;
 	};
 	
 }

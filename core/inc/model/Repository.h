@@ -4,13 +4,31 @@
 #include <unordered_map>
 #include <functional>
 #include <memory>
+#include <QObject>
 
 
 
 namespace DDD
 {
+	class IRepository : public QObject
+	{
+		Q_OBJECT
+	public:
+		virtual ~IRepository() = default;
+
+	protected:
+		virtual void onAggregateMarketForDelete(Aggregate* agg) = 0;
+	public slots:
+		void onAggregateMarketForDeleteSlot()
+		{
+			Aggregate* agg = qobject_cast<Aggregate*>(QObject::sender());
+			onAggregateMarketForDelete(agg);
+		}
+
+	};
+
 	template <DerivedFromAggregate AGG>
-	class Repository
+	class Repository : public IRepository
 	{
 	public:
 		typedef AGG AggregateType;
@@ -28,6 +46,7 @@ namespace DDD
 			if (!m_storage.contains(aggregate->getID()))
 			{
 				m_storage.insert({ aggregate->getID(), aggregate });
+				QObject::connect(aggregate.get(), &Aggregate::deleteMarked, this, &IRepository::onAggregateMarketForDeleteSlot);
 				return true;
 			}
 #if LOGGER_LIBRARY_AVAILABLE == 1
@@ -40,6 +59,7 @@ namespace DDD
 			auto it = m_storage.find(id);
 			if (it != m_storage.end())
 			{
+				QObject::disconnect(it->second.get(), &Aggregate::deleteMarked, this, &IRepository::onAggregateMarketForDeleteSlot);
 				m_storage.erase(it);
 				return true;
 			}
@@ -53,7 +73,9 @@ namespace DDD
 			auto it = m_storage.find(aggregate->getID());
 			if (it != m_storage.end())
 			{
+				QObject::disconnect(it->second.get(), &Aggregate::deleteMarked, this, &IRepository::onAggregateMarketForDeleteSlot);
 				it->second = aggregate;
+				QObject::connect(aggregate.get(), &Aggregate::deleteMarked, this, &IRepository::onAggregateMarketForDeleteSlot);
 				return true;
 			}
 #if LOGGER_LIBRARY_AVAILABLE == 1
@@ -126,6 +148,17 @@ namespace DDD
 		
 	protected:
 		std::unordered_map<ID, std::shared_ptr<AGG>> m_storage;
+
+
+		void onAggregateMarketForDelete(Aggregate *agg) override
+		{
+			if (agg)
+			{
+				Logger::logInfo("Object: " + std::to_string(agg->getID()) +" marked for delete");
+				remove(agg->getID());
+			}
+		}
+	
 	};
 }
 

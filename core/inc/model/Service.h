@@ -49,6 +49,13 @@ namespace DDD
 			return m_repository;
 		}
 
+		std::vector<std::shared_ptr<AGG>> getAggregates() const 
+		{
+			if (m_repository)
+				return m_repository->getAll();
+			return {};
+		}
+
 		virtual std::shared_ptr<ServiceExecutionResult> execute() = 0;
 
 	private:

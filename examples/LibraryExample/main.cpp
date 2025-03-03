@@ -164,7 +164,8 @@ int main(int argc, char* argv[]){
 		widget->show();
 #endif
 
-
+	Log::UI::NativeConsoleView::createStaticInstance();
+	Log::UI::NativeConsoleView::getStaticInstance()->show();
 	
 
 	std::shared_ptr<PersonFactory> personFactory = model.createFactory<PersonFactory>();
@@ -174,11 +175,21 @@ int main(int argc, char* argv[]){
 	model.createService<AnimalService>();
 	model.createService<GeneralService>();
 
-	auto personID = personFactory->createAggregate();
-	auto animalID = animalFactory->createAggregate();
+	auto person = personFactory->createAggregate();
+	auto animal = animalFactory->createAggregate();
+
+
 	//
 	std::shared_ptr<DDD::ServiceExecutionResult> personResult = model.executeService<PersonService>();
 	std::shared_ptr<DDD::ServiceExecutionResult> generalResult = model.executeService<GeneralService>();
+
+	auto person1 = model.getAggregate(person->getID());
+	if (person1)
+	{
+		person1->markDeleted();
+	}
+	std::shared_ptr<DDD::ServiceExecutionResult> personResult2 = model.executeService<PersonService>();
+	std::shared_ptr<DDD::ServiceExecutionResult> generalResult2 = model.executeService<GeneralService>();
 	//std::shared_ptr<DDD::ServiceExecutionResult> animalResult = model.executeService<AnimalDomain>(1);
 
 	//personDomain.executeFactoryRemoveInstance(personID, personID);

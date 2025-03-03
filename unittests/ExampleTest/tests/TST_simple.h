@@ -1,12 +1,13 @@
 #pragma once
 
 #include "UnitTest.h"
-//#include <QObject>
-//#include <QCoreapplication>
+#include "DDD.h"
+
+#include "TestObjs/Animal.h"
+#include "TestObjs/Cat.h"
 
 
-
-
+using AnimalModel = DDD::Model<Animal>;
 
 class TST_simple : public UnitTest::Test
 {
@@ -15,41 +16,57 @@ public:
 	TST_simple()
 		: Test("TST_simple")
 	{
-		ADD_TEST(TST_simple::test1);
-		ADD_TEST(TST_simple::test2);
+		ADD_TEST(TST_simple::createFactories);
+		ADD_TEST(TST_simple::createServices);
+		ADD_TEST(TST_simple::instantiateAnimal);
+		ADD_TEST(TST_simple::runAnimalService);
 
 	}
 
 private:
 
+	AnimalModel model;
+	std::shared_ptr<AnimalFactory> animalFactory;
+	std::shared_ptr<CatFactory> catFactory;
+	std::shared_ptr<AnimalService> animalService;
+
 	// Tests
-	TEST_FUNCTION(test1)
+	TEST_FUNCTION(createFactories)
 	{
 		TEST_START;
+		catFactory = model.createFactory<CatFactory>();
+		TEST_ASSERT(catFactory != nullptr);
+		//animalFactory = model.createFactory<AnimalFactory>();
+		//TEST_ASSERT(animalFactory != nullptr);
 
-		int a = 0;
-		TEST_MESSAGE("is a == 0?");
-		TEST_ASSERT(a == 0);
+		
+	}
+
+	TEST_FUNCTION(createServices)
+	{
+		TEST_START;
+		animalService = model.createService<AnimalService>();
+		TEST_ASSERT(animalService != nullptr);
 	}
 
 
 
 
-	TEST_FUNCTION(test2)
+
+	TEST_FUNCTION(instantiateAnimal)
 	{
 		TEST_START;
 
-		int a = 0;
-		TEST_ASSERT_M(a == 0, "is a == 0?");
+		std::shared_ptr<Animal> animal = catFactory->createAggregate();
+		TEST_ASSERT(animal != nullptr);
+		TEST_ASSERT(animal->getID() > DDD::INVALID_ID);
+	}
 
-		int b = 0;
-		if (b != 0)
-		{
-			TEST_FAIL("b is not 0");
-		}
+	TEST_FUNCTION(runAnimalService)
+	{
+		TEST_START;
 
-		// fails if a != b
-		TEST_COMPARE(a, b);
+		std::shared_ptr<DDD::ServiceExecutionResult> result = model.executeService<AnimalService>();
 	}
 
 };
