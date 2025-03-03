@@ -83,6 +83,16 @@ namespace DDD
 			}
 			return result;
 		}
+		[[nodiscard]] std::vector<ID> getIDs() const
+		{
+			std::vector<ID> ids;
+			ids.reserve(m_storage.size());
+			for (const auto &el : m_storage)
+			{
+				ids.emplace_back(el.first);
+			}
+			return ids;
+		}
 		void clear()
 		{
 			m_storage.clear();

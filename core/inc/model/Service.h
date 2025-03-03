@@ -4,6 +4,7 @@
 #include "model/Aggregate.h"
 
 
+
 namespace DDD
 {
 	class ServiceExecutionResult
@@ -15,30 +16,43 @@ namespace DDD
 		virtual ~ServiceExecutionResult() = default;
 	};
 
-	template <DerivedFromAggregate AGG>
-	class Service : public IID
+	class Service
 	{
-		template <DerivedFromAggregate AGG>
-		friend class Domain;
 	public:
-		typedef AGG AggregateType;
-		Service(ID id)
-			: IID(id)
-		{}
+		typedef void AggregateType;
+		Service() = default;
+		Service(const Service&) = default;
+		Service(Service&&) = default;
+		virtual ~Service() = default;
 
-	protected:
-		virtual std::shared_ptr<ServiceExecutionResult> execute(const std::unordered_map<ID, std::shared_ptr<AGG>>& repo) = 0;
+		virtual std::shared_ptr<ServiceExecutionResult> execute() = 0;
 
 	private:
-		std::shared_ptr<ServiceExecutionResult> executeInternal(const Repository<AGG>& repo)
+
+	};
+
+	template <DerivedFromAggregate AGG>
+	class AggregateService : public Service
+	{
+	public:
+		typedef AGG AggregateType;
+		AggregateService(Repository<AGG>* repository)
+			: m_repository(repository)
+		{}
+
+		void unregister()
 		{
-			std::unordered_map<ID, std::shared_ptr<AGG>> cRepo;
-			std::vector<std::shared_ptr<AGG>> all = repo.getAll();
-			for (const auto &element : all)
-			{
-				cRepo[element->getID()] = element;
-			}
-			return execute(cRepo);
+			m_repository = nullptr;
 		}
+		Repository<AGG>* getRepository() const
+		{
+			return m_repository;
+		}
+
+		virtual std::shared_ptr<ServiceExecutionResult> execute() = 0;
+
+	private:
+		Repository<AGG>* m_repository = nullptr;
+
 	};
 }

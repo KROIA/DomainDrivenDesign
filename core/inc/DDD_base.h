@@ -15,10 +15,14 @@ namespace DDD
 	const ID INVALID_ID = 0;
 
 	class Aggregate;
+	class Service;
 
 
 	template <typename T>
 	concept DerivedFromAggregate = std::is_base_of_v<Aggregate, T>;
+
+	template <typename T>
+	concept DerivedFromService = std::is_base_of_v<Service, T>;
 
 	template <DerivedFromAggregate AGG>
 	class AggregateFactory;
