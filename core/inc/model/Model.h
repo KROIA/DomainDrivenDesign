@@ -12,40 +12,12 @@ namespace DDD
 	template <DerivedFromAggregate... Ts>
 	class Model
 	{
-		/*// Template to find the first type derived from the specified Base
-		template <typename Base, typename... Ts>
-		struct FindDerivedFrom;
-
-		// Specialization to recursively find the first type derived from Base
-		template <typename Base, typename T, typename... Ts>
-		struct FindDerivedFrom<Base, T, Ts...>
-		{
-			using Type = std::conditional_t<
-				std::is_base_of_v<Base, T>,
-				T, // If T is derived from Base, return it
-				typename FindDerivedFrom<Base, Ts...>::Type // Otherwise, continue searching
-			>;
-		};
-
-		// Base case: No matching type found
-		template <typename Base>
-		struct FindDerivedFrom<Base>
-		{
-			using Type = void;
-		};
-
-		// Helper alias
-		template <typename Base, typename... Ts>
-		using FindDerivedFromT = typename FindDerivedFrom<Base, Ts...>::Type;*/
-
 		template<DerivedFromAggregate AGG>
 		struct AggregateContainer
 		{
 			Repository<AGG> repository;
-			//std::unordered_map<ID, std::shared_ptr<AggregateFactory<AGG>>> factories;
 			std::shared_ptr<AggregateFactory<AGG>> factory;
 			std::vector<std::shared_ptr<AggregateService<AGG>>> services;
-			//std::unordered_map<ID, std::shared_ptr<Service<AGG>>> services;
 		};
 
 	public:
@@ -100,35 +72,7 @@ namespace DDD
 				m_generalServices.push_back(service);
 			}
 			return nullptr;		
-		}
-
-
-		/*template <typename AGG>
-		ID executeFactoryCreateInstance()
-		{
-			static_assert((std::is_same_v<AGG, Ts> || ...), "Domain type <D> not found in this model");
-			AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
-			if (domain.factory)
-				return domain.factory->createAggregateInternal(factoryData);
-			return INVALID_ID;
-		}*/
-
-		/*template <typename AGG>
-		void executeFactoryRemoveInstance(ID factoryID, ID aggregateID)
-		{
-			static_assert((std::is_same_v<AGG, Ts> || ...), "Domain type <D> not found in this model");
-			AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
-			domain.executeFactoryRemoveInstance(factoryID, aggregateID);
-		}
-		template <typename AGG>
-		void executeFactoryReplaceInstance(ID factoryID, std::shared_ptr<FactoryCreationData> factoryData)
-		{
-			static_assert((std::is_same_v<AGG, Ts> || ...), "Domain type <D> not found in this model");
-			AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
-			domain.executeFactoryReplaceInstance(factoryID, factoryData);
-		}*/
-
-		
+		}		
 
 		template <DerivedFromService SER>
 		std::shared_ptr<ServiceExecutionResult> executeService()
