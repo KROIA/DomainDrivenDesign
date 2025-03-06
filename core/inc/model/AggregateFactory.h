@@ -5,38 +5,20 @@
 
 namespace DDD
 {
-	/*
-	class FactoryCreationData
-	{
-	public:
-		FactoryCreationData() = default;
-		FactoryCreationData(const FactoryCreationData& other) = default;
-		FactoryCreationData(FactoryCreationData&& other) noexcept = default;
-		virtual ~FactoryCreationData() = default;
-	};*/
-
 	template <DerivedFromAggregate AGG>
 	class AggregateFactory
 	{
 	public:
 		typedef AGG AggregateType;
 
-		AggregateFactory(Repository<AGG>* repo, UniqueIDDomain *idDomain)
+		AggregateFactory(Repository<AGG>* repo)
 			: m_repository(repo)
-			, m_idDomain(idDomain)
 		{}
 		void unregister()
 		{
 			m_repository = nullptr;
-			m_idDomain = nullptr;
 		}
 	protected:
-		ID getNextID()
-		{
-			if (m_idDomain)
-				return m_idDomain->getNextID();
-			return INVALID_ID;
-		}
 		std::shared_ptr<AGG> registerInstance(std::shared_ptr<AGG> agg)
 		{
 			if (m_repository)
@@ -44,16 +26,12 @@ namespace DDD
 				if (m_repository->add(agg))
 					return agg;
 			}
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			Logger::logError("AggregateFactory<AGG>::registerInstance(): Can't register object");
+#endif
 			return nullptr;
 		}
-
-
-
-
-		Repository<AGG>* m_repository;
-		UniqueIDDomain* m_idDomain;
-
 	private:
-
+		Repository<AGG>* m_repository;
 	};
 }

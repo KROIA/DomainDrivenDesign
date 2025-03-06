@@ -18,6 +18,14 @@ namespace DDD
 		}
 		~Entity() override = default;
 
+		Entity& operator=(const Entity& other) = delete;
+		Entity& operator=(Entity&& other) noexcept
+		{
+			m_alive = other.m_alive;
+			IID::operator=(std::move(other));
+			return *this;
+		}
+
 		void markDeleted()
 		{
 			m_alive = false;

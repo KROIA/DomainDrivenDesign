@@ -58,8 +58,11 @@ namespace DDD
 
 		virtual std::shared_ptr<ServiceExecutionResult> execute() = 0;
 
-	private:
+
+	protected:
 		Repository<AGG>* m_repository = nullptr;
+	private:
+		
 
 	};
 }

@@ -10,8 +10,8 @@
 class Animal : public DDD::Aggregate, public IInfo
 {
 public:
-	Animal(DDD::ID id)
-		: Aggregate(id)
+	Animal()
+		: Aggregate()
 	{
 
 	}
@@ -20,6 +20,7 @@ public:
 	{
 		std::string msg;
 		std::vector<std::shared_ptr<Entity>> entities = getEntities();
+		msg += "ID: " + getIDString() + "\n";
 		for (const std::shared_ptr<Entity>& e : entities)
 		{
 			const IInfo* ie = dynamic_cast<const IInfo*>(e.get());
@@ -64,14 +65,14 @@ private:
 class AnimalFactory : public DDD::AggregateFactory<Animal>
 {
 public:
-	AnimalFactory(DDD::Repository<Animal>* repo, DDD::UniqueIDDomain* idDomain)
-		: AggregateFactory(repo, idDomain)
+	AnimalFactory(DDD::Repository<Animal>* repo)
+		: AggregateFactory(repo)
 	{}
 	~AnimalFactory() {}
 
 	std::shared_ptr<Animal> createAggregate()
 	{
-		return registerInstance(std::make_shared<Animal>(getNextID()));
+		return registerInstance(std::make_shared<Animal>());
 	}
 protected:
 
@@ -100,3 +101,5 @@ public:
 protected:
 
 };
+
+

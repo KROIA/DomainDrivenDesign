@@ -13,6 +13,10 @@ public:
 	{
 		return "Cat leg";
 	}
+	void walk()
+	{
+		emitDataChanged();
+	}
 };
 class CatBody : public Body
 {
@@ -40,16 +44,25 @@ public:
 class Cat : public Animal
 {
 public:
-	Cat(DDD::ID id)
-		: Animal(id)
+	enum EntityID : DDD::ID
 	{
-		legs.push_back(std::make_shared<CatLeg>(1));
-		legs.push_back(std::make_shared<CatLeg>(2));
-		legs.push_back(std::make_shared<CatLeg>(3));
-		legs.push_back(std::make_shared<CatLeg>(4));
+		LEG1 = 1,
+		LEG2 = 2,
+		LEG3 = 3,
+		LEG4 = 4,
+		BODY = 5,
+		HEAD = 6
+	};
+	Cat()
+		: Animal()
+	{
+		legs.push_back(std::make_shared<CatLeg>(LEG1));
+		legs.push_back(std::make_shared<CatLeg>(LEG2));
+		legs.push_back(std::make_shared<CatLeg>(LEG3));
+		legs.push_back(std::make_shared<CatLeg>(LEG4));
 
-		body = std::make_shared<CatBody>(5);
-		head = std::make_shared<CatHead>(6);
+		body = std::make_shared<CatBody>(BODY);
+		head = std::make_shared<CatHead>(HEAD);
 
 		addEntity(legs[0]);
 		addEntity(legs[1]);
@@ -65,14 +78,14 @@ public:
 class CatFactory : public DDD::AggregateFactory<Cat>
 {
 public:
-	CatFactory(DDD::Repository<Cat>* repo, DDD::UniqueIDDomain* idDomain)
-		: AggregateFactory(repo, idDomain)
+	CatFactory(DDD::Repository<Cat>* repo)
+		: AggregateFactory(repo)
 	{}
 	~CatFactory() {}
 
 	std::shared_ptr<Cat> createAggregate()
 	{
-		return registerInstance(std::make_shared<Cat>(getNextID()));
+		return registerInstance(std::make_shared<Cat>());
 	}
 protected:
 
@@ -90,7 +103,7 @@ public:
 
 	std::shared_ptr<DDD::ServiceExecutionResult> execute() override
 	{
-		std::cout << "AnimalService::execute " << getRepository()->size() << std::endl;
+		std::cout << "CatService::execute " << getRepository()->size() << std::endl;
 		std::vector<std::shared_ptr<Cat>> animals = getAggregates();
 		for (const auto& animal : animals)
 		{
