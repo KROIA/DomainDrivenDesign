@@ -6,6 +6,22 @@
 
 namespace DDD
 {
+	/**
+	 * @brief
+	 * Entity class to represent an entity in the domain.
+	 * An entity can be attached as a child to an aggregate.
+	 *
+	 * @details
+	 * Signals:
+	 *   deleteMarked(ID entityID) - emitted when the entity is marked for deletion
+	 *   dataChanged(ID entityID) - emitted when the entity data is changed
+	 *
+	 * Implementation info:
+	 *   When implementing a new entity, when a variable changes, the emitDataChanged() function should be called to emit the dataChanged signal.
+	 *   When the object is not alive, the entity should not be used anymore.
+	 *
+	 *   When the entity is marked for deletion, the entity gets removed automatically from the aggregate.
+	 */
 	class Entity : public QObject, public IID
 	{
 		Q_OBJECT

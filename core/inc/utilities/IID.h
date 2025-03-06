@@ -3,6 +3,10 @@
 
 namespace DDD
 {
+	/**
+	 * @brief
+	 * Class to hold a unique ID.
+	 */
 	class IID
 	{
 		friend class UniqueIDDomain;
