@@ -4,6 +4,7 @@
 #include "Service.h"
 #include "AggregateFactory.h"
 #include "utilities/UniqueIDDomain.h"
+#include "IPersistence.h"
 #include <variant>
 #include <array>
 
@@ -48,14 +49,19 @@ namespace DDD
 		template <DerivedFromAggregate AGG> [[nodiscard]] bool contains(const std::shared_ptr<typename AGG>& aggregate) const;
 		template <DerivedFromAggregate AGG>	[[nodiscard]] bool contains(const AGG* aggregate) const;
 
-		template <DerivedFromAggregate AGG> [[nodiscard]] std::shared_ptr<AGG> getAggregate(const ID id) const;
-		[[nodiscard]] std::shared_ptr<Aggregate> getAggregate(const ID id) const;
+		template <DerivedFromAggregate AGG> [[nodiscard]] std::shared_ptr<AGG> getAggregate(const ID id);
+		template <DerivedFromAggregate AGG> [[nodiscard]] std::shared_ptr<const AGG> getAggregate(const ID id) const;
+		[[nodiscard]] std::shared_ptr<Aggregate> getAggregate(const ID id);
+		[[nodiscard]] std::shared_ptr<const Aggregate> getAggregate(const ID id) const;
 		bool removeAggregate(const ID id);
 		template <DerivedFromAggregate AGG> void removeAggregates();
 		void clear();
-		template <DerivedFromAggregate AGG> [[nodiscard]] std::vector<std::shared_ptr<AGG>> getAggregates(const std::vector<ID>& idList) const;
-		[[nodiscard]] std::vector<std::shared_ptr<Aggregate>> getAggregates(const std::vector<ID>& idList) const;
-		[[nodiscard]] std::vector<std::shared_ptr<Aggregate>> getAggregates() const;
+		template <DerivedFromAggregate AGG> [[nodiscard]] std::vector<std::shared_ptr<AGG>> getAggregates(const std::vector<ID>& idList);
+		template <DerivedFromAggregate AGG> [[nodiscard]] std::vector<std::shared_ptr<const AGG>> getAggregates(const std::vector<ID>& idList) const;
+		[[nodiscard]] std::vector<std::shared_ptr<Aggregate>> getAggregates(const std::vector<ID>& idList);
+		[[nodiscard]] std::vector<std::shared_ptr<const Aggregate>> getAggregates(const std::vector<ID>& idList) const;
+		[[nodiscard]] std::vector<std::shared_ptr<Aggregate>> getAggregates();
+		[[nodiscard]] std::vector<std::shared_ptr<const Aggregate>> getAggregates() const;
 
 		template <DerivedFromAggregate AGG> [[nodiscard]] std::vector<ID> getIDs() const;
 		[[nodiscard]] std::vector<ID> getIDs() const;
@@ -65,10 +71,22 @@ namespace DDD
 			return m_idDomain;
 		}
 
+		template <DerivedFromIPersistance PER> std::shared_ptr<PER>  attachPersistence();
+		bool hasPersistanceAttached() const
+		{
+			return m_persistance != nullptr;
+		}
+
 #if LOGGER_LIBRARY_AVAILABLE == 1
 		void attachLogger(Log::LogObject* logger)
 		{
 			m_logger = logger;
+			for (auto& agg : m_domains)
+			{
+				std::visit([logger](auto& obj) {
+					obj.repository.attachLogger(logger);
+					}, agg);
+			}
 		}
 #endif
 
@@ -87,6 +105,7 @@ namespace DDD
 
 		std::vector<std::shared_ptr<Service>> m_generalServices;
 		UniqueIDDomain m_idDomain;
+		std::shared_ptr<IPersistence> m_persistance;
 
 #if LOGGER_LIBRARY_AVAILABLE == 1
 		Log::LogObject* m_logger = nullptr;
@@ -268,7 +287,15 @@ namespace DDD
 
 	template <DerivedFromAggregate... Ts>
 	template <DerivedFromAggregate AGG>
-	[[nodiscard]] std::shared_ptr<AGG> Model<Ts...>::getAggregate(const ID id) const
+	[[nodiscard]] std::shared_ptr<AGG> Model<Ts...>::getAggregate(const ID id)
+	{
+		static_assert((std::is_same_v<AGG, Ts> || ...), "Aggregate type <AGG> not found in this model");
+		AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
+		return domain.repository.get(id);
+	}
+	template <DerivedFromAggregate... Ts>
+	template <DerivedFromAggregate AGG>
+	[[nodiscard]] std::shared_ptr<const AGG> Model<Ts...>::getAggregate(const ID id) const
 	{
 		static_assert((std::is_same_v<AGG, Ts> || ...), "Aggregate type <AGG> not found in this model");
 		const AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
@@ -276,7 +303,7 @@ namespace DDD
 	}
 
 	template <DerivedFromAggregate... Ts>
-	[[nodiscard]] std::shared_ptr<Aggregate> Model<Ts...>::getAggregate(const ID id) const
+	[[nodiscard]] std::shared_ptr<Aggregate> Model<Ts...>::getAggregate(const ID id)
 	{
 		std::shared_ptr<Aggregate> objPtr = nullptr;
 		for (auto& agg : m_domains)
@@ -289,6 +316,21 @@ namespace DDD
 		}
 		return nullptr;
 	}
+	template <DerivedFromAggregate... Ts>
+	[[nodiscard]] std::shared_ptr<const Aggregate> Model<Ts...>::getAggregate(const ID id) const 
+	{
+		std::shared_ptr<const Aggregate> objPtr = nullptr;
+		for (auto& agg : m_domains)
+		{
+			std::visit([&objPtr, id](auto& obj) {
+				objPtr = obj.repository.get(id);
+				}, agg);
+			if (objPtr)
+				return objPtr;
+		}
+		return nullptr;
+	}
+
 	template <DerivedFromAggregate... Ts>
 	bool Model<Ts...>::removeAggregate(const ID id)
 	{
@@ -325,11 +367,11 @@ namespace DDD
 
 	template <DerivedFromAggregate... Ts>
 	template <DerivedFromAggregate AGG>
-	[[nodiscard]] std::vector<std::shared_ptr<AGG>> Model<Ts...>::getAggregates(const std::vector<ID>& idList) const
+	[[nodiscard]] std::vector<std::shared_ptr<AGG>> Model<Ts...>::getAggregates(const std::vector<ID>& idList)
 	{
 		static_assert((std::is_same_v<AGG, Ts> || ...), "Aggregate type <AGG> not found in this model");
 		std::vector<std::shared_ptr<AGG>> objs;
-		const AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
+		AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
 		objs.reserve(idList.size());
 		for (const ID& id : idList)
 		{
@@ -341,7 +383,24 @@ namespace DDD
 	}
 
 	template <DerivedFromAggregate... Ts>
-	[[nodiscard]] std::vector<std::shared_ptr<Aggregate>> Model<Ts...>::getAggregates(const std::vector<ID>& idList) const
+	template <DerivedFromAggregate AGG>
+	[[nodiscard]] std::vector<std::shared_ptr<const AGG>> Model<Ts...>::getAggregates(const std::vector<ID>& idList) const
+	{
+		static_assert((std::is_same_v<AGG, Ts> || ...), "Aggregate type <AGG> not found in this model");
+		std::vector<std::shared_ptr<const AGG>> objs;
+		const AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
+		objs.reserve(idList.size());
+		for (const ID& id : idList)
+		{
+			std::shared_ptr<const AGG> obj = domain.repository.get(id);
+			if (obj)
+				objs.push_back(obj);
+		}
+		return objs;
+	}
+
+	template <DerivedFromAggregate... Ts>
+	[[nodiscard]] std::vector<std::shared_ptr<Aggregate>> Model<Ts...>::getAggregates(const std::vector<ID>& idList) 
 	{
 		std::vector<std::shared_ptr<Aggregate>> objs;
 		for (auto& agg : m_domains)
@@ -357,16 +416,46 @@ namespace DDD
 		}
 		return objs;
 	}
+	template <DerivedFromAggregate... Ts>
+	[[nodiscard]] std::vector<std::shared_ptr<const Aggregate>> Model<Ts...>::getAggregates(const std::vector<ID>& idList) const
+	{
+		std::vector<std::shared_ptr<const Aggregate>> objs;
+		for (auto& agg : m_domains)
+		{
+			std::visit([&objs, &idList](auto& obj) {
+				for (const ID& id : idList)
+				{
+					std::shared_ptr<const Aggregate> ins = obj.repository.get(id);
+					if (ins)
+						objs.push_back(ins);
+				}
+				}, agg);
+		}
+		return objs;
+	}
 
 	template <DerivedFromAggregate... Ts>
-	[[nodiscard]] std::vector<std::shared_ptr<Aggregate>> Model<Ts...>::getAggregates() const
+	[[nodiscard]] std::vector<std::shared_ptr<Aggregate>> Model<Ts...>::getAggregates() 
 	{
 		std::vector<std::shared_ptr<Aggregate>> objs;
 		for (auto& agg : m_domains)
 		{
 			std::visit([&objs](auto& obj) {
-				auto subObjs = obj.repository.getAll();
-				for (auto& ins : subObjs)
+				for (auto& ins : obj.repository.getAll())
+					objs.push_back(ins);
+				}, agg);
+		}
+		return objs;
+	}
+
+	template <DerivedFromAggregate... Ts>
+	[[nodiscard]] std::vector<std::shared_ptr<const Aggregate>> Model<Ts...>::getAggregates() const
+	{
+		std::vector<std::shared_ptr<const Aggregate>> objs;
+		for (auto& agg : m_domains)
+		{
+			std::visit([&objs](auto& obj) {
+				for (auto& ins : obj.repository.getAll())
 					objs.push_back(ins);
 				}, agg);
 		}
@@ -396,6 +485,24 @@ namespace DDD
 				}, agg);
 		}
 		return ids;
+	}
+	template <DerivedFromAggregate... Ts>
+	template <DerivedFromIPersistance PER>
+	std::shared_ptr<PER> Model<Ts...>::attachPersistence()
+	{
+		if (m_persistance)
+		{
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			if (m_logger) m_logger->info("Detaching persistence layer");
+#endif
+			m_persistance = nullptr;
+		}
+#if LOGGER_LIBRARY_AVAILABLE == 1
+		if (m_logger) m_logger->info("Attaching persistence layer");
+#endif
+		std::shared_ptr<PER> persistence = std::make_shared<PER>();
+		m_persistance = persistence;
+		return persistence;
 	}
 
 

@@ -17,6 +17,7 @@ namespace DDD
 	class Entity;
 	class Aggregate;
 	class Service;
+	class IPersistence;
 
 
 	template <typename T>
@@ -30,6 +31,9 @@ namespace DDD
 
 	template <DerivedFromAggregate AGG>
 	class AggregateFactory;
+
+	template <typename T>
+	concept DerivedFromIPersistance = std::is_base_of_v<IPersistence, T>;
 
 	//template <typename T, typename AGG>
 	//concept DerivedFromAggregateFactory = std::is_base_of_v<AggregateFactory<AGG>, T>;

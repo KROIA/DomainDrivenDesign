@@ -46,6 +46,20 @@ namespace DDD
 		{
 			obj->m_id = getNextID();
 		}
+		bool tryAssignCustomID(std::shared_ptr<IID> obj, ID id)
+		{
+			if (id > m_currentID)
+			{
+				m_currentID = id;
+				obj->m_id = id;
+				return true;
+			}
+			return false;
+		}
+		bool canAssignCustomID(ID id) const 
+		{
+			return id > m_currentID;
+		}
 	private:
 		ID m_currentID = 0;
 	};

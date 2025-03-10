@@ -29,9 +29,12 @@ namespace DDD
 			{
 				if (m_repository->add(agg))
 					return agg;
+#if LOGGER_LIBRARY_AVAILABLE == 1
+				Logger::logError("AggregateFactory<AGG>::registerInstance(): Can't register object");
+#endif
 			}
 #if LOGGER_LIBRARY_AVAILABLE == 1
-			Logger::logError("AggregateFactory<AGG>::registerInstance(): Can't register object");
+			Logger::logError("AggregateFactory<AGG>::registerInstance(): This factory does not have a repository reference set.");
 #endif
 			return nullptr;
 		}

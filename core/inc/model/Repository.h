@@ -1,6 +1,7 @@
 #pragma once
 #include "DDD_base.h"
 #include "Aggregate.h"
+#include "utilities/UniqueIDDomain.h"
 #include <unordered_map>
 #include <functional>
 #include <memory>
@@ -74,13 +75,21 @@ namespace DDD
 			return *this;
 		}
 
+#if LOGGER_LIBRARY_AVAILABLE == 1
+		void attachLogger(Log::LogObject* logger)
+		{
+			m_logger = logger;
+		}
+#endif
 
 		bool add(const std::shared_ptr<AGG>& aggregate);
 		bool remove(ID id);
-		bool replace(const std::shared_ptr<AGG>& aggregate);
-		[[nodiscard]] std::shared_ptr<AGG> get(ID id) const;
+		//bool replace(const std::shared_ptr<AGG>& aggregate);
+		[[nodiscard]] std::shared_ptr<AGG> get(ID id);
+		[[nodiscard]] std::shared_ptr<const AGG> get(ID id) const;
 		
-		[[nodiscard]] std::vector<std::shared_ptr<AGG>> getAll() const;
+		[[nodiscard]] std::vector<std::shared_ptr<AGG>> getAll();
+		[[nodiscard]] std::vector<std::shared_ptr<const AGG>> getAll() const;
 		[[nodiscard]] std::vector<ID> getIDs() const;
 		void clear()
 		{
@@ -125,12 +134,18 @@ namespace DDD
 		{
 			if (agg)
 			{
-				Logger::logInfo("Object: " + std::to_string(agg->getID()) +" marked for delete");
+#if LOGGER_LIBRARY_AVAILABLE == 1
+				if (m_logger) m_logger->info("Object: " + std::to_string(agg->getID()) + " marked for delete");
+#endif
 				remove(agg->getID());
 			}
 		}
 		std::unordered_map<ID, std::shared_ptr<AGG>> m_storage;
 		UniqueIDDomain& m_idDomain;
+
+#if LOGGER_LIBRARY_AVAILABLE == 1
+		Log::LogObject* m_logger = nullptr;
+#endif
 	};
 
 
@@ -138,16 +153,23 @@ namespace DDD
 	bool Repository<AGG>::add(const std::shared_ptr<AGG>& aggregate)
 	{
 		const ID id = aggregate->getID();
+
 		if (contains(id)) {
+			// Remove existing object
+			remove(id);
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			if (m_logger) m_logger->warning("Repository<" + std::string(typeid(AGG).name()) + ">::add(): Aggregate with ID " + IID::getIDString(id) + " already exists in the repository, it will be replaced by the new instance.");
+#endif
+			/*
 #if LOGGER_LIBRARY_AVAILABLE == 1
 			Logger::logError("Repository<" + std::string(typeid(AGG).name()) + ">::add(): Aggregate with ID " + IID::getIDString(id) + " already exists in the repository.");
 #endif
-			return false;
+			return false;*/
 		}
 		if (!aggregate->isAlive())
 		{
 #if LOGGER_LIBRARY_AVAILABLE == 1
-			Logger::logError("Repository<" + std::string(typeid(AGG).name()) + ">::add(): Aggregate with ID " + IID::getIDString(id) + " is not alive.");
+			if (m_logger) m_logger->error("Repository<" + std::string(typeid(AGG).name()) + ">::add(): Aggregate with ID " + IID::getIDString(id) + " is not alive.");
 #endif
 			return false;
 		}
@@ -161,7 +183,7 @@ namespace DDD
 			return true;
 		}
 #if LOGGER_LIBRARY_AVAILABLE == 1
-		Logger::logError("Repository<" + std::string(typeid(AGG).name()) + ">::add(): Aggregate with ID " + aggregate->getIDString() + " already exists in the repository.");
+		if (m_logger) m_logger->error("Repository<" + std::string(typeid(AGG).name()) + ">::add(): Aggregate with ID " + aggregate->getIDString() + " already exists in the repository.");
 #endif
 		return false;
 	}
@@ -177,10 +199,11 @@ namespace DDD
 			return true;
 		}
 #if LOGGER_LIBRARY_AVAILABLE == 1
-		Logger::logWarning("Repository<" + std::string(typeid(AGG).name()) + ">::remove(): Aggregate with ID " + IID::getIDString(id) + " does not exists in the repository.");
+		if (m_logger) m_logger->warning("Repository<" + std::string(typeid(AGG).name()) + ">::remove(): Aggregate with ID " + IID::getIDString(id) + " does not exists in the repository.");
 #endif
 		return false;
 	}
+	/*
 	template <DerivedFromAggregate AGG>
 	bool Repository<AGG>::replace(const std::shared_ptr<AGG>& aggregate)
 	{
@@ -205,9 +228,9 @@ namespace DDD
 		Logger::logWarning("Repository<" + std::string(typeid(AGG).name()) + ">::replace(): Aggregate with ID " + aggregate->getIDString() + " does not exists in the repository.");
 #endif
 		return false;
-	}
+	}*/
 	template <DerivedFromAggregate AGG>
-	[[nodiscard]] std::shared_ptr<AGG> Repository<AGG>::get(ID id) const
+	[[nodiscard]] std::shared_ptr<AGG> Repository<AGG>::get(ID id)
 	{
 		auto it = m_storage.find(id);
 		if (it != m_storage.end())
@@ -215,13 +238,28 @@ namespace DDD
 			return it->second;
 		}
 #if LOGGER_LIBRARY_AVAILABLE == 1
-		Logger::logError("Repository<" + std::string(typeid(AGG).name()) + ">::get(): Aggregate with ID " + IID::getIDString(id) + " does not exists in the repository.");
+		if (m_logger) m_logger->error("Repository<" + std::string(typeid(AGG).name()) + ">::get(): Aggregate with ID " + IID::getIDString(id) + " does not exists in the repository.");
 #endif
 		return nullptr;
 	}
 
 	template <DerivedFromAggregate AGG>
-	[[nodiscard]] std::vector<std::shared_ptr<AGG>> Repository<AGG>::getAll() const
+	[[nodiscard]] std::shared_ptr<const AGG> Repository<AGG>::get(ID id) const
+	{
+		auto it = m_storage.find(id);
+		if (it != m_storage.end())
+		{
+			return it->second;
+		}
+#if LOGGER_LIBRARY_AVAILABLE == 1
+		if (m_logger) m_logger->error("Repository<" + std::string(typeid(AGG).name()) + ">::get(): Aggregate with ID " + IID::getIDString(id) + " does not exists in the repository.");
+#endif
+		return nullptr;
+	}
+
+
+	template <DerivedFromAggregate AGG>
+	[[nodiscard]] std::vector<std::shared_ptr<AGG>> Repository<AGG>::getAll()
 	{
 		std::vector<std::shared_ptr<AGG>> result;
 		for (auto& pair : m_storage)
@@ -230,6 +268,18 @@ namespace DDD
 		}
 		return result;
 	}
+
+	template <DerivedFromAggregate AGG>
+	[[nodiscard]] std::vector<std::shared_ptr<const AGG>> Repository<AGG>::getAll() const
+	{
+		std::vector<std::shared_ptr<const AGG>> result;
+		for (auto& pair : m_storage)
+		{
+			result.push_back(pair.second);
+		}
+		return result;
+	}
+
 	template <DerivedFromAggregate AGG>
 	[[nodiscard]] std::vector<ID> Repository<AGG>::getIDs() const
 	{
