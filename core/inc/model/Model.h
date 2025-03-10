@@ -153,6 +153,9 @@ namespace DDD
 				}
 			}
 			std::shared_ptr<SER> service = std::make_shared<SER>();
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			if (m_logger) m_logger->info("Registering service: " + std::string(service->getName()));
+#endif
 			m_generalServices.push_back(service);
 			return service;
 		}
@@ -168,20 +171,28 @@ namespace DDD
 			AggregateContainer<typename SER::AggregateType>& domain = getAggregateContainer<typename SER::AggregateType>();
 			for (auto& service : domain.services) {
 				if (auto* ptr = dynamic_cast<SER*>(service.get())) {
+#if LOGGER_LIBRARY_AVAILABLE == 1
+					if (m_logger) m_logger->info("Executing service: " + std::string(ptr->getName()));
+#endif
 					return ptr->execute();
 				}
 			}
-			return nullptr;
 		}
 		else
 		{
 			for (auto& service : m_generalServices)
 			{
 				if (auto* ptr = dynamic_cast<SER*>(service.get())) {
+#if LOGGER_LIBRARY_AVAILABLE == 1
+					if (m_logger) m_logger->info("Executing service: " + std::string(ptr->getName()));
+#endif
 					return ptr->execute();
 				}
 			}
 		}
+#if LOGGER_LIBRARY_AVAILABLE == 1
+		if (m_logger) m_logger->error("Service: "+std::string(typeid(SER).name())+" not found for execution.\nService must be created first!");
+#endif
 		return nullptr;
 	}
 
