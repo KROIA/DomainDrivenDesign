@@ -14,8 +14,15 @@ namespace DDD
 	{
 		Q_OBJECT
 	public:
+		IRepository(std::string_view name)
+			: m_name(name)
+		{}
 		virtual ~IRepository() = default;
 
+		const std::string_view& getName() const
+		{
+			return m_name;
+		}
 	protected:
 		virtual void onAggregateMarketForDelete(Aggregate* agg) = 0;
 
@@ -34,6 +41,8 @@ namespace DDD
 			onAggregateMarketForDelete(agg);
 		}
 
+	private:
+		std::string_view m_name;
 	};
 
 	template <DerivedFromAggregate AGG>
@@ -42,11 +51,13 @@ namespace DDD
 	public:
 		typedef AGG AggregateType;
 		Repository(UniqueIDDomain &domain)
-			: m_idDomain(domain)
+			: IRepository(typeid(AGG).name())
+			, m_idDomain(domain)
 		{}
 		Repository(const Repository& other) = delete;
 		Repository(Repository&& other) noexcept
-			: m_storage(std::move(other.m_storage))
+			: IRepository(typeid(AGG).name())
+			, m_storage(std::move(other.m_storage))
 			, m_idDomain(other.m_idDomain)
 		{
 			

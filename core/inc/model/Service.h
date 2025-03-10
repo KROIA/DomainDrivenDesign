@@ -20,13 +20,23 @@ namespace DDD
 	{
 	public:
 		typedef void AggregateType;
-		Service() = default;
+		Service(const std::string_view &name)
+			: m_name(name)
+		{
+			
+		}
 		Service(const Service&) = default;
 		Service(Service&&) = default;
 		virtual ~Service() = default;
 
 		virtual std::shared_ptr<ServiceExecutionResult> execute() = 0;
+		const std::string_view& getName() const
+		{
+			return m_name;
+		}
 
+	protected:
+		const std::string_view m_name;
 	private:
 
 	};
@@ -37,7 +47,8 @@ namespace DDD
 	public:
 		typedef AGG AggregateType;
 		AggregateService(Repository<AGG>* repository)
-			: m_repository(repository)
+			: Service(typeid(AGG).name())
+			, m_repository(repository)
 		{}
 
 		void unregister()

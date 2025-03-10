@@ -17,7 +17,7 @@ class GeneralService : public DDD::Service
 {
 public:
 	GeneralService()
-		: Service()
+		: Service("GeneralService")
 	{}
 	~GeneralService() {}
 

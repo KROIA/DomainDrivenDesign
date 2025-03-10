@@ -64,6 +64,14 @@ namespace DDD
 		{
 			return m_idDomain;
 		}
+
+#if LOGGER_LIBRARY_AVAILABLE == 1
+		void attachLogger(Log::LogObject* logger)
+		{
+			m_logger = logger;
+		}
+#endif
+
 	private:
 		// Retrieve an instance of a specific type X
 		template <typename AGG> [[nodiscard]] AggregateContainer<AGG>& getAggregateContainer();
@@ -79,6 +87,11 @@ namespace DDD
 
 		std::vector<std::shared_ptr<Service>> m_generalServices;
 		UniqueIDDomain m_idDomain;
+
+#if LOGGER_LIBRARY_AVAILABLE == 1
+		Log::LogObject* m_logger = nullptr;
+#endif
+
 	};
 
 	template <DerivedFromAggregate... Ts>
@@ -88,8 +101,16 @@ namespace DDD
 		static_assert((std::is_base_of_v<AggregateFactory<typename FAC::AggregateType>, FAC>), "FAC must be derived from AggregateFactory");
 		AggregateContainer<typename FAC::AggregateType>& domain = getAggregateContainer<typename FAC::AggregateType>();
 		if (domain.factory)
+		{
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			if (m_logger) m_logger->info("Unregistering factory for "+ std::string(domain.factory->getName()));
+#endif
 			domain.factory->unregister();
+		}
 		std::shared_ptr<FAC> factory = std::make_shared<FAC>(&domain.repository);
+#if LOGGER_LIBRARY_AVAILABLE == 1
+		if (m_logger) m_logger->info("Registering factory for " + std::string(factory->getName()));
+#endif
 		domain.factory = factory;
 		return factory;
 	}
@@ -106,12 +127,17 @@ namespace DDD
 			// Check if the service already exists
 			for (auto& service : domain.services) {
 				if (dynamic_cast<SER*>(service.get())) {
-					Logger::logError(std::string("Service: ") + typeid(SER).name() + " already exists in the model for the type: " + typeid(Model<Ts...>).name());
+#if LOGGER_LIBRARY_AVAILABLE == 1
+					if (m_logger) m_logger->error(std::string("Service: ") + typeid(SER).name() + " already exists in the model for the type: " + typeid(Model<Ts...>).name());
+#endif
 					return nullptr;
 				}
 			}
 
 			std::shared_ptr<SER> service = std::make_shared<SER>(&domain.repository);
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			if (m_logger) m_logger->info("Registering service: "+std::string(service->getName()));
+#endif
 			domain.services.push_back(service);
 			return service;
 		}
@@ -120,7 +146,9 @@ namespace DDD
 			for (auto& service : m_generalServices)
 			{
 				if (dynamic_cast<SER*>(service.get())) {
-					Logger::logError(std::string("Service: ") + typeid(SER).name() + " already exists in the model for the type: " + typeid(Model<Ts...>).name());
+#if LOGGER_LIBRARY_AVAILABLE == 1
+					if (m_logger) m_logger->error(std::string("Service: ") + typeid(SER).name() + " already exists in the model for the type: " + typeid(Model<Ts...>).name());
+#endif
 					return nullptr;
 				}
 			}
