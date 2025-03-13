@@ -22,7 +22,7 @@ namespace DDD
 	 *
 	 *   When the entity is marked for deletion, the entity gets removed automatically from the aggregate.
 	 */
-	class Entity : public QObject, public IID
+	class DDD_EXPORT Entity : public QObject, public IID
 	{
 		Q_OBJECT
 	public:

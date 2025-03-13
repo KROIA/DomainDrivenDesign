@@ -21,8 +21,8 @@ public:
 class Person : public DDD::Aggregate
 {
 public: 
-	Person(DDD::ID id)
-		: Aggregate(id)
+	Person()
+		: Aggregate()
 	{
 		m_leg = std::make_shared<Leg>(1);
 		addEntity(m_leg);
@@ -36,8 +36,8 @@ private:
 class Animal : public DDD::Aggregate
 {
 public:
-	Animal(DDD::ID id)
-		: Aggregate(id)
+	Animal()
+		: Aggregate()
 	{
 		m_leg = std::make_shared<Leg>(1);
 		addEntity(m_leg);
@@ -51,14 +51,14 @@ private:
 class PersonFactory : public DDD::AggregateFactory<Person>
 {
 public:
-	PersonFactory(DDD::Repository<Person>* repo, DDD::UniqueIDDomain* idDomain)
-		: AggregateFactory(repo, idDomain)
+	PersonFactory(DDD::Repository<Person>* repo)
+		: AggregateFactory(repo)
 	{}
 	~PersonFactory() {}
 
 	std::shared_ptr<Person> createAggregate()
 	{
-		return registerInstance(std::make_shared<Person>(getNextID()));
+		return registerInstance(std::make_shared<Person>());
 	}
 protected:
 	
@@ -68,14 +68,14 @@ private:
 class AnimalFactory : public DDD::AggregateFactory<Animal>
 {
 public:
-	AnimalFactory(DDD::Repository<Animal>* repo, DDD::UniqueIDDomain* idDomain)
-		: AggregateFactory(repo, idDomain)
+	AnimalFactory(DDD::Repository<Animal>* repo)
+		: AggregateFactory(repo)
 	{}
 	~AnimalFactory() {}
 
 	std::shared_ptr<Animal> createAggregate()
 	{
-		return registerInstance(std::make_shared<Animal>(getNextID()));
+		return registerInstance(std::make_shared<Animal>());
 	}
 protected:
 	
@@ -124,7 +124,7 @@ class GeneralService : public DDD::Service
 {
 public:
 	GeneralService()
-		: Service()
+		: Service("GeneralService")
 	{}
 	~GeneralService() {}
 
