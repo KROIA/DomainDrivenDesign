@@ -7,6 +7,7 @@
 
 #include "TestObjs/Animal.h"
 #include "TestObjs/Cat.h"
+#include "JsonPersistence.h"
 
 
 using AnimalModel = DDD::Model<Animal, Cat>;
@@ -45,6 +46,7 @@ public:
 	{
 		ADD_TEST(TST_simple::createFactories);
 		ADD_TEST(TST_simple::createServices);
+		ADD_TEST(TST_simple::createPersistance);
 		ADD_TEST(TST_simple::instantiateAnimal);
 		ADD_TEST(TST_simple::runAnimalService);
 		ADD_TEST(TST_simple::searchAggregates);
@@ -60,6 +62,7 @@ private:
 	std::shared_ptr<AnimalService> animalService;
 	std::shared_ptr<CatService> catService;
 	std::shared_ptr<GeneralService> generalService;
+	std::shared_ptr<JsonPersistence> persistance;
 	std::vector<DDD::ID> ids;
 
 	// Tests
@@ -86,6 +89,16 @@ private:
 		generalService = model.createService<GeneralService>();
 		TEST_ASSERT(generalService != nullptr);
 
+	}
+
+	TEST_FUNCTION(createPersistance)
+	{
+		TEST_START;
+		persistance = model.attachPersistence<JsonPersistence>();
+		TEST_ASSERT(persistance != nullptr);
+		TEST_ASSERT(model.getPersistance() != nullptr);
+
+		persistance->setFactories(animalFactory, catFactory);
 	}
 
 

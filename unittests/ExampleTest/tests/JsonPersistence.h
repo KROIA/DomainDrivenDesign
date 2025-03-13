@@ -7,10 +7,13 @@
 #include <QDir>
 #include <QIODevice>
 
-class JsonPersistance : public DDD::IPersistence
+class AnimalFactory;
+class CatFactory;
+
+class JsonPersistence : public DDD::IPersistence
 {
 public:
-	JsonPersistance()
+	JsonPersistence()
 		: IPersistence()
 		, m_folderPath("Data/")
 	{
@@ -20,6 +23,13 @@ public:
 		{
 			dir.mkpath(m_folderPath.c_str());
 		}
+
+	}
+
+	void setFactories(std::shared_ptr<AnimalFactory> animalFactory,	std::shared_ptr<CatFactory> catFactory)
+	{
+		this->animalFactory = animalFactory;
+		this->catFactory = catFactory;
 	}
 
 	/**
@@ -119,10 +129,10 @@ public:
 	 * @param aggregates The aggregates to update
 	 * @return true if the operation was successful, false otherwise
 	 */
-	bool update(const std::vector<std::shared_ptr<DDD::Aggregate>>& aggregates) override
+	/*bool update(const std::vector<std::shared_ptr<DDD::Aggregate>>& aggregates) override
 	{
 		return false;
-	}
+	}*/
 
 	/**
 	 * @brief Update the given aggregate in the persistance layer
@@ -132,7 +142,7 @@ public:
 	 * @param aggregate The aggregate to update
 	 * @return true if the operation was successful, false otherwise
 	 */
-	bool update(std::shared_ptr<DDD::Aggregate> aggregate) override
+	/*bool update(std::shared_ptr<DDD::Aggregate> aggregate) override
 	{
 		DDD::ID id = aggregate->getID();
 		QString fileName = QString::fromStdString(m_folderPath) + QString::fromStdString(DDD::IID::getIDString(id)) + ".json";
@@ -142,7 +152,7 @@ public:
 			return false;
 		}
 		return false;
-	}
+	}*/
 
 	/**
 	 * @brief Clear the persistance layer
@@ -208,5 +218,6 @@ public:
 
 	private:
 		std::string m_folderPath;
-
+		std::shared_ptr<AnimalFactory> animalFactory;
+		std::shared_ptr<CatFactory> catFactory;
 };

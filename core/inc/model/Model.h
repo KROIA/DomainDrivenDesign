@@ -72,10 +72,14 @@ namespace DDD
 		}
 
 		template <DerivedFromIPersistance PER> std::shared_ptr<PER>  attachPersistence();
+		std::shared_ptr<IPersistence> getPersistance() {
+			return m_persistance;
+		}
 		bool hasPersistanceAttached() const
 		{
 			return m_persistance != nullptr;
 		}
+
 
 #if LOGGER_LIBRARY_AVAILABLE == 1
 		void attachLogger(Log::LogObject* logger)

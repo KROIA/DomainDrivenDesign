@@ -87,7 +87,7 @@ namespace DDD
 		 * @param aggregates The aggregates to update
 		 * @return true if the operation was successful, false otherwise
 		 */ 
-		virtual bool update(const std::vector<ID>& aggregates) = 0;
+		//virtual bool update(const std::vector<ID>& aggregates) = 0;
 
 		/**
 		 * @brief Update the given aggregate in the persistence layer
@@ -97,7 +97,7 @@ namespace DDD
 		 * @param aggregate The aggregate to update
 		 * @return true if the operation was successful, false otherwise
 		 */
-		virtual bool update(std::shared_ptr<Aggregate> aggregate) = 0;
+		//virtual bool update(std::shared_ptr<Aggregate> aggregate) = 0;
 
 		/**
 		 * @brief Clear the persistence layer
