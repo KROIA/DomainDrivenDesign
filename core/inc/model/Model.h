@@ -73,12 +73,15 @@ namespace DDD
 
 		template <DerivedFromIPersistance PER> std::shared_ptr<PER>  attachPersistence();
 		std::shared_ptr<IPersistence> getPersistance() {
-			return m_persistance;
+			return m_persistence;
 		}
 		bool hasPersistanceAttached() const
 		{
-			return m_persistance != nullptr;
+			return m_persistence != nullptr;
 		}
+
+		bool save() const;
+		bool load();
 
 
 #if LOGGER_LIBRARY_AVAILABLE == 1
@@ -109,7 +112,7 @@ namespace DDD
 
 		std::vector<std::shared_ptr<Service>> m_generalServices;
 		UniqueIDDomain m_idDomain;
-		std::shared_ptr<IPersistence> m_persistance;
+		std::shared_ptr<IPersistence> m_persistence;
 
 #if LOGGER_LIBRARY_AVAILABLE == 1
 		Log::LogObject* m_logger = nullptr;
@@ -494,21 +497,52 @@ namespace DDD
 	template <DerivedFromIPersistance PER>
 	std::shared_ptr<PER> Model<Ts...>::attachPersistence()
 	{
-		if (m_persistance)
+		if (m_persistence)
 		{
 #if LOGGER_LIBRARY_AVAILABLE == 1
 			if (m_logger) m_logger->info("Detaching persistence layer");
 #endif
-			m_persistance = nullptr;
+			m_persistence = nullptr;
 		}
 #if LOGGER_LIBRARY_AVAILABLE == 1
 		if (m_logger) m_logger->info("Attaching persistence layer");
 #endif
 		std::shared_ptr<PER> persistence = std::make_shared<PER>();
-		m_persistance = persistence;
+		m_persistence = persistence;
 		return persistence;
 	}
 
+	template <DerivedFromAggregate... Ts>
+	bool Model<Ts...>::save() const
+	{
+		if (!m_persistence)
+		{
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			if (m_logger) m_logger->error("No persistence layer attached to the model");
+#endif
+			return false;
+		}
+		else
+		{
+			return m_persistence->save();
+		}
+	}
+
+	template <DerivedFromAggregate... Ts>
+	bool Model<Ts...>::load()
+	{
+		if (!m_persistence)
+		{
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			if (m_logger) m_logger->error("No persistence layer attached to the model");
+#endif
+			return false;
+		}
+		else
+		{
+			return m_persistence->load();
+		}		
+	}
 
 	//
 	// PRIVATE
