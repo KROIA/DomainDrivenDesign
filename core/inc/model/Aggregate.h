@@ -22,6 +22,10 @@ namespace DDD
 		explicit Aggregate()
 			: Entity(INVALID_ID)
 		{}
+		explicit Aggregate(const ID &id)
+			: Entity(id)
+		{}
+
 		Aggregate& operator=(const Aggregate& other) = delete;
 		Aggregate& operator=(Aggregate&& other) noexcept;
 

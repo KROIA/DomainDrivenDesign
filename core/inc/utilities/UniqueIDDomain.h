@@ -42,6 +42,14 @@ namespace DDD
 			m_currentID = id;
 		}
 
+		void setCurrentIDIFLarger(ID id)
+		{
+			if (id > m_currentID)
+			{
+				m_currentID = id;
+			}
+		}
+
 		void setUniqueIDFor(std::shared_ptr<IID> obj)
 		{
 			obj->m_id = getNextID();

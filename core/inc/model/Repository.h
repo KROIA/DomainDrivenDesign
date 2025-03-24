@@ -175,6 +175,10 @@ namespace DDD
 		}
 		if (id == INVALID_ID)
 			m_idDomain.setUniqueIDFor(aggregate);
+		else
+		{
+			m_idDomain.setCurrentIDIFLarger(id);
+		}
 		if (!m_storage.contains(aggregate->getID()))
 		{
 			claimAggregate(aggregate);
