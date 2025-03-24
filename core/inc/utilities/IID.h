@@ -52,6 +52,10 @@ namespace DDD
 		{
 			return std::to_string(id);
 		}
+		[[nodiscard]] static ID getIDFromString(const std::string& id)
+		{
+			return std::stoull(id);
+		}
 		[[nodiscard]] bool operator==(const IID& other) const
 		{
 			return m_id == other.m_id;
