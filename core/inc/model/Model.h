@@ -449,7 +449,7 @@ namespace DDD
 	template <DerivedFromAggregate AGG>
 	[[nodiscard]] std::vector<std::shared_ptr<AGG>> Model<Ts...>::getAggregates()
 	{
-		const AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
+		AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
 		return domain.repository.getAll();
 	}
 
