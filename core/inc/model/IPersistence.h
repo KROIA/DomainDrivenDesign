@@ -54,6 +54,12 @@ namespace DDD
 		virtual bool remove(ID id) = 0;
 
 		/**
+		 * @brief Removes all files from the filesystem that are associated with the database
+		 * @return true if the operation was successful, false otherwise
+		 */
+		virtual bool removeOnFilesystem() = 0;
+
+		/**
 		 * @brief Load all aggregates from the persistence layer
 		 * @warning Use a factory to instantiate a new object, passing the needed data to the constructor
 		 *
