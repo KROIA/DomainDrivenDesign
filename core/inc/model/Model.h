@@ -370,6 +370,7 @@ namespace DDD
 				obj.repository.clear();
 				}, agg);
 		}
+		m_idDomain.reset();
 	}
 
 	template <DerivedFromAggregate... Ts>
