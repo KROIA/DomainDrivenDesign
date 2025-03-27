@@ -68,6 +68,10 @@ namespace DDD
 		{
 			return id > m_currentID;
 		}
+		void reset()
+		{
+			m_currentID = 0;
+		}
 	private:
 		ID m_currentID = 0;
 	};
