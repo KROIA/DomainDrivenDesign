@@ -61,7 +61,9 @@ namespace DDD
 		[[nodiscard]] std::vector<std::shared_ptr<Aggregate>> getAggregates(const std::vector<ID>& idList);
 		[[nodiscard]] std::vector<std::shared_ptr<const Aggregate>> getAggregates(const std::vector<ID>& idList) const;
 		[[nodiscard]] std::vector<std::shared_ptr<Aggregate>> getAggregates();
+		template <DerivedFromAggregate AGG> [[nodiscard]] std::vector<std::shared_ptr<AGG>> getAggregates();
 		[[nodiscard]] std::vector<std::shared_ptr<const Aggregate>> getAggregates() const;
+		template <DerivedFromAggregate AGG> [[nodiscard]] std::vector<std::shared_ptr<const AGG>> getAggregates() const;
 
 		template <DerivedFromAggregate AGG> [[nodiscard]] std::vector<ID> getIDs() const;
 		[[nodiscard]] std::vector<ID> getIDs() const;
@@ -424,6 +426,7 @@ namespace DDD
 		}
 		return objs;
 	}
+
 	template <DerivedFromAggregate... Ts>
 	[[nodiscard]] std::vector<std::shared_ptr<const Aggregate>> Model<Ts...>::getAggregates(const std::vector<ID>& idList) const
 	{
@@ -443,7 +446,15 @@ namespace DDD
 	}
 
 	template <DerivedFromAggregate... Ts>
-	[[nodiscard]] std::vector<std::shared_ptr<Aggregate>> Model<Ts...>::getAggregates() 
+	template <DerivedFromAggregate AGG>
+	[[nodiscard]] std::vector<std::shared_ptr<AGG>> Model<Ts...>::getAggregates()
+	{
+		const AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
+		return domain.repository.getAll();
+	}
+
+	template <DerivedFromAggregate... Ts>
+	[[nodiscard]] std::vector<std::shared_ptr<Aggregate>> Model<Ts...>::getAggregates()
 	{
 		std::vector<std::shared_ptr<Aggregate>> objs;
 		for (auto& agg : m_domains)
@@ -466,6 +477,19 @@ namespace DDD
 				for (auto& ins : obj.repository.getAll())
 					objs.push_back(ins);
 				}, agg);
+		}
+		return objs;
+	}
+	template <DerivedFromAggregate... Ts>
+	template <DerivedFromAggregate AGG>
+	[[nodiscard]] std::vector<std::shared_ptr<const AGG>> Model<Ts...>::getAggregates() const
+	{
+		const AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
+		std::vector<std::shared_ptr<const AGG>> objs;
+		objs.reserve(domain.repository.size());
+		for (const auto& it : domain.repository.getALL())
+		{
+			objs.push_back(it);
 		}
 		return objs;
 	}

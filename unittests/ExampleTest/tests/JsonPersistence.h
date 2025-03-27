@@ -85,6 +85,11 @@ public:
 		return false;
 	}
 
+	bool removeOnFilesystem() override
+	{
+		return false;
+	}
+
 	/**
 	 * @brief Load all aggregates from the persistence layer
 	 * @warning Use a factory to instantiate a new object, passing the needed data to the constructor
