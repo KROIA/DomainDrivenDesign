@@ -318,6 +318,8 @@ namespace DDD
 		for (auto& agg : m_domains)
 		{
 			std::visit([&objPtr, id](auto& obj) {
+				if (!obj.repository.contains(id))
+					return;
 				objPtr = obj.repository.get(id);
 				}, agg);
 			if (objPtr)
@@ -332,6 +334,8 @@ namespace DDD
 		for (auto& agg : m_domains)
 		{
 			std::visit([&objPtr, id](auto& obj) {
+				if (!obj.repository.contains(id))
+					return;
 				objPtr = obj.repository.get(id);
 				}, agg);
 			if (objPtr)
@@ -385,6 +389,8 @@ namespace DDD
 		objs.reserve(idList.size());
 		for (const ID& id : idList)
 		{
+			if (!domain.repository.contains(id))
+				continue;
 			std::shared_ptr<AGG> obj = domain.repository.get(id);
 			if (obj)
 				objs.push_back(obj);
@@ -402,6 +408,8 @@ namespace DDD
 		objs.reserve(idList.size());
 		for (const ID& id : idList)
 		{
+			if (!domain.repository.contains(id))
+				continue;
 			std::shared_ptr<const AGG> obj = domain.repository.get(id);
 			if (obj)
 				objs.push_back(obj);
@@ -418,6 +426,8 @@ namespace DDD
 			std::visit([&objs, &idList](auto& obj) {
 				for (const ID& id : idList)
 				{
+					if(!obj.repository.contains(id))
+						continue;
 					std::shared_ptr<Aggregate> ins = obj.repository.get(id);
 					if (ins)
 						objs.push_back(ins);
@@ -436,6 +446,8 @@ namespace DDD
 			std::visit([&objs, &idList](auto& obj) {
 				for (const ID& id : idList)
 				{
+					if (!obj.repository.contains(id))
+						continue;
 					std::shared_ptr<const Aggregate> ins = obj.repository.get(id);
 					if (ins)
 						objs.push_back(ins);
