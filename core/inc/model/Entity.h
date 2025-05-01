@@ -10,6 +10,7 @@ namespace DDD
 	 * @brief
 	 * Entity class to represent an entity in the domain.
 	 * An entity can be attached as a child to an aggregate.
+	 * The entity ID is not unique in a global scope, but it is unique in the scope of the aggregate.
 	 *
 	 * @details
 	 * Signals:
