@@ -47,10 +47,10 @@ public:
 	 * @param ids
 	 * @return true if the operation was successful, false otherwise
 	 */
-	/*bool save(const std::vector<DDD::ID>& ids) override
+	bool save(const std::vector<DDD::ID>& ids) override
 	{
 		return false;
-	}*/
+	}
 
 	/**
 	 * @brief Save the given aggregate to the persistence layer
@@ -121,10 +121,10 @@ public:
 	 * @param ids The ids of the aggregates to load
 	 * @return true if the operation was successful, false otherwise
 	 */
-	 /*bool load(const std::vector<DDD::ID>& ids) override
-	{
+	 bool load(const std::vector<DDD::ID>& ids) override
+	 {
 		return false;
-	}*/
+	 }
 
 	/**
 	 * @brief Update the given aggregates in the persistance layer
