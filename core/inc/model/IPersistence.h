@@ -27,7 +27,7 @@ namespace DDD
 		 * @param ids 
 		 * @return true if the operation was successful, false otherwise
 		 */
-		//virtual bool save(const std::vector<ID>& ids) = 0;
+		virtual bool save(const std::vector<ID>& ids) = 0;
 
 		/**
 		 * @brief Save the given aggregate to the persistence layer
@@ -83,7 +83,7 @@ namespace DDD
 		 * @param ids The ids of the aggregates to load
 		 * @return true if the operation was successful, false otherwise
 		 */
-		//virtual bool load(const std::vector<ID>& ids) = 0;
+		virtual bool load(const std::vector<ID>& ids) = 0;
 
 		/**
 		 * @brief Update the given aggregates in the persistence layer

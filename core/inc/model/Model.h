@@ -83,7 +83,9 @@ namespace DDD
 		}
 
 		bool save() const;
+		bool save(const std::vector<ID>& ids) const;
 		bool load();
+		bool load(const std::vector<ID>& ids);
 
 
 #if LOGGER_LIBRARY_AVAILABLE == 1
@@ -564,6 +566,21 @@ namespace DDD
 			return m_persistence->save();
 		}
 	}
+	template <DerivedFromAggregate... Ts>
+	bool Model<Ts...>::save(const std::vector<ID>& ids) const
+	{
+		if (!m_persistence)
+		{
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			if (m_logger) m_logger->error("No persistence layer attached to the model");
+#endif
+			return false;
+		}
+		else
+		{
+			return m_persistence->save(ids);
+		}
+	}
 
 	template <DerivedFromAggregate... Ts>
 	bool Model<Ts...>::load()
@@ -579,6 +596,21 @@ namespace DDD
 		{
 			return m_persistence->load();
 		}		
+	}
+	template <DerivedFromAggregate... Ts>
+	bool Model<Ts...>::load(const std::vector<ID>& ids)
+	{
+		if (!m_persistence)
+		{
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			if (m_logger) m_logger->error("No persistence layer attached to the model");
+#endif
+			return false;
+		}
+		else
+		{
+			return m_persistence->load(ids);
+		}
 	}
 
 	//
