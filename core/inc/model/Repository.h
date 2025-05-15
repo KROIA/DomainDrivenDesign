@@ -121,6 +121,25 @@ namespace DDD
 			return contains(aggregate->getID());
 		}
 
+		[[nodiscard]] std::vector<std::shared_ptr<AGG>> getDeleted()
+		{
+			std::vector<std::shared_ptr<AGG>> result;
+			for (auto& pair : m_deleted)
+				result.push_back(pair.second);
+			return result;
+		}
+		[[nodiscard]] std::vector<std::shared_ptr<const AGG>> getDeleted() const
+		{
+			std::vector<std::shared_ptr<const AGG>> result;
+			for (auto& pair : m_deleted)
+				result.push_back(pair.second);
+			return result;
+		}
+		void clearDeletedCache()
+		{
+			m_deleted.clear();
+		}
+
 		UniqueIDDomain& getIDDomain() const
 		{
 			return m_idDomain;
@@ -141,6 +160,7 @@ namespace DDD
 			}
 		}
 		std::unordered_map<ID, std::shared_ptr<AGG>> m_storage;
+		std::unordered_map<ID, std::shared_ptr<AGG>> m_deleted;
 		UniqueIDDomain& m_idDomain;
 
 #if LOGGER_LIBRARY_AVAILABLE == 1
@@ -199,6 +219,7 @@ namespace DDD
 		{
 			QObject::disconnect(it->second.get(), &Aggregate::deleteMarked, this, &IRepository::onAggregateMarketForDeleteSlot);
 			unclaimAggregate(it->second);
+			m_deleted.insert({ it->first, it->second });
 			m_storage.erase(it);
 			return true;
 		}

@@ -65,6 +65,13 @@ namespace DDD
 		[[nodiscard]] std::vector<std::shared_ptr<const Aggregate>> getAggregates() const;
 		template <DerivedFromAggregate AGG> [[nodiscard]] std::vector<std::shared_ptr<const AGG>> getAggregates() const;
 
+		[[nodiscard]] std::vector<std::shared_ptr<Aggregate>> getDeletedAggregates();
+		template <DerivedFromAggregate AGG> [[nodiscard]] std::vector<std::shared_ptr<AGG>> getDeletedAggregates();
+		[[nodiscard]] std::vector<std::shared_ptr<const Aggregate>> getDeletedAggregates() const;
+		template <DerivedFromAggregate AGG> [[nodiscard]] std::vector<std::shared_ptr<const AGG>> getDeletedAggregates() const;
+		void clearDeletedAggregates();
+		template <DerivedFromAggregate AGG> void clearDeletedAggregates();
+
 		template <DerivedFromAggregate AGG> [[nodiscard]] std::vector<ID> getIDs() const;
 		[[nodiscard]] std::vector<ID> getIDs() const;
 
@@ -507,6 +514,71 @@ namespace DDD
 		}
 		return objs;
 	}
+
+	template <DerivedFromAggregate... Ts>
+	[[nodiscard]] std::vector<std::shared_ptr<Aggregate>> Model<Ts...>::getDeletedAggregates()
+	{
+		std::vector<std::shared_ptr<Aggregate>> objs;
+		for (auto& agg : m_domains)
+		{
+			std::visit([&objs](auto& obj) {
+				std::vector<std::shared_ptr<Aggregate>> deleted = obj.repository.getDeleted();
+				objs.insert(objs.end(), deleted.begin(), deleted.end());
+				}, agg);
+		}
+		return objs;
+	}
+
+	template <DerivedFromAggregate... Ts>
+	template <DerivedFromAggregate AGG> 
+	[[nodiscard]] std::vector<std::shared_ptr<AGG>> Model<Ts...>::getDeletedAggregates()
+	{
+		AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
+		return domain.repository.getDeleted();
+	}
+
+	template <DerivedFromAggregate... Ts>
+	[[nodiscard]] std::vector<std::shared_ptr<const Aggregate>> Model<Ts...>::getDeletedAggregates() const
+	{
+		std::vector<std::shared_ptr<const Aggregate>> objs;
+		for (auto& agg : m_domains)
+		{
+			std::visit([&objs](auto& obj) {
+				std::vector<std::shared_ptr<const Aggregate>> deleted = obj.repository.getDeleted();
+				objs.insert(objs.end(), deleted.begin(), deleted.end());
+				}, agg);
+		}
+		return objs;
+	}
+
+	template <DerivedFromAggregate... Ts>
+	template <DerivedFromAggregate AGG> 
+	[[nodiscard]] std::vector<std::shared_ptr<const AGG>> Model<Ts...>::getDeletedAggregates() const
+	{
+		AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
+		return domain.repository.getDeleted();
+	}
+
+	template <DerivedFromAggregate... Ts>
+	void Model<Ts...>::clearDeletedAggregates()
+	{
+		for (auto& agg : m_domains)
+		{
+			std::visit([](auto& obj) {
+				obj.repository.clearDeletedCache();
+				}, agg);
+		}
+	}
+
+	template <DerivedFromAggregate... Ts>
+	template <DerivedFromAggregate AGG> 
+	void Model<Ts...>::clearDeletedAggregates()
+	{
+		AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
+		domain.repository.clearDeletedCache();
+	}
+
+
 
 	template <DerivedFromAggregate... Ts>
 	template <DerivedFromAggregate AGG>
