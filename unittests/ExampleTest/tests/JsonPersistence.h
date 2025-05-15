@@ -47,10 +47,10 @@ public:
 	 * @param ids
 	 * @return true if the operation was successful, false otherwise
 	 */
-	bool save(const std::vector<DDD::ID>& ids) override
+	/*bool save(const std::vector<DDD::ID>& ids) override
 	{
 		return false;
-	}
+	}*/
 
 	/**
 	 * @brief Save the given aggregate to the persistence layer
@@ -58,10 +58,10 @@ public:
 	 * @param id The id for the aggregate to save
 	 * @return true if the operation was successful, false otherwise
 	 */
-	bool save(DDD::ID id) override
+	 /*bool save(DDD::ID id) override
 	{
 		return false;
-	}
+	}*/
 
 	/**
 	 * @brief Remove the given aggregates from the persistance layer
@@ -69,10 +69,10 @@ public:
 	 * @param ids The aggregate ids to remove
 	 * @return true if the operation was successful, false otherwise
 	 */
-	bool remove(const std::vector<DDD::ID>& ids)  override
+	 /*bool remove(const std::vector<DDD::ID>& ids)  override
 	{
 		return false;
-	}
+	}*/
 
 	/**
 	 * @brief Remove the given aggregate from the persistance layer
@@ -80,15 +80,15 @@ public:
 	 * @param id The id of the aggregate to remove
 	 * @return true if the operation was successful, false otherwise
 	 */
-	bool remove(DDD::ID aggregate)  override
+	 /*bool remove(DDD::ID aggregate)  override
 	{
 		return false;
-	}
+	}*/
 
-	bool removeOnFilesystem() override
+	/*bool removeOnFilesystem() override
 	{
 		return false;
-	}
+	}*/
 
 	/**
 	 * @brief Load all aggregates from the persistence layer
@@ -109,10 +109,10 @@ public:
 	 * @param id The id of the aggregate to load
 	 * @return true if the operation was successful, false otherwise
 	 */
-	bool load(DDD::ID id) override
+	/*bool load(DDD::ID id) override
 	{
 		return false;
-	}
+	}*/
 
 	/**
 	 * @brief Load the aggregates with the given ids from the persistence layer
@@ -121,10 +121,10 @@ public:
 	 * @param ids The ids of the aggregates to load
 	 * @return true if the operation was successful, false otherwise
 	 */
-	bool load(const std::vector<DDD::ID>& ids) override
+	 /*bool load(const std::vector<DDD::ID>& ids) override
 	{
 		return false;
-	}
+	}*/
 
 	/**
 	 * @brief Update the given aggregates in the persistance layer
@@ -165,7 +165,7 @@ public:
 	 *
 	 * @return true if the operation was successful, false otherwise
 	 */
-	bool clear() override
+	 /*bool clear() override
 	{
 		// Delete all files
 		QDir dir(m_folderPath.c_str());
@@ -178,7 +178,7 @@ public:
 			dir.remove(file);
 		}
 		return true;
-	}
+	}*/
 
 	/**
 	 * @brief Check if the persistance layer contains the aggregate with the given id
@@ -186,7 +186,7 @@ public:
 	 * @param id The id of the aggregate to check
 	 * @return true if the aggregate exists in the persistance layer, false otherwise
 	 */
-	bool contains(DDD::ID id) override
+	 /*bool contains(DDD::ID id) override
 	{
 		// Get the file list of json files
 		QDir dir(m_folderPath.c_str());
@@ -204,14 +204,14 @@ public:
 			}
 		}
 		return false;
-	}
+	}*/
 
 	/**
 	 * @brief Get the number of aggregates in the persistance layer
 	 *
 	 * @return The number of aggregates in the persistance layer
 	 */
-	size_t size() override
+	 /*size_t size() override
 	{
 		// Get the amount of json files in the folder
 		QDir dir(m_folderPath.c_str());
@@ -219,7 +219,7 @@ public:
 		filters << "*.json";
 		dir.setNameFilters(filters);
 		return dir.entryList().size();
-	}
+	}*/
 
 	private:
 		std::string m_folderPath;

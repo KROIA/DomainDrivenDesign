@@ -27,7 +27,7 @@ namespace DDD
 		 * @param ids 
 		 * @return true if the operation was successful, false otherwise
 		 */
-		virtual bool save(const std::vector<ID>& ids) = 0;
+		//virtual bool save(const std::vector<ID>& ids) = 0;
 
 		/**
 		 * @brief Save the given aggregate to the persistence layer
@@ -35,7 +35,7 @@ namespace DDD
 		 * @param id The id for the aggregate to save
 		 * @return true if the operation was successful, false otherwise
 		 */
-		virtual bool save(ID id) = 0;
+		//virtual bool save(ID id) = 0;
 
 		/**
 		 * @brief Remove the given aggregates from the persistence layer
@@ -43,7 +43,7 @@ namespace DDD
 		 * @param ids The aggregate ids to remove
 		 * @return true if the operation was successful, false otherwise
 		 */
-		virtual bool remove(const std::vector<ID>& ids) = 0;
+		//virtual bool remove(const std::vector<ID>& ids) = 0;
 
 		/**
 		 * @brief Remove the given aggregate from the persistence layer
@@ -51,13 +51,13 @@ namespace DDD
 		 * @param id The id of the aggregate to remove
 		 * @return true if the operation was successful, false otherwise
 		 */
-		virtual bool remove(ID id) = 0;
+		//virtual bool remove(ID id) = 0;
 
 		/**
 		 * @brief Removes all files from the filesystem that are associated with the database
 		 * @return true if the operation was successful, false otherwise
 		 */
-		virtual bool removeOnFilesystem() = 0;
+		//virtual bool removeOnFilesystem() = 0;
 
 		/**
 		 * @brief Load all aggregates from the persistence layer
@@ -74,7 +74,7 @@ namespace DDD
 		 * @param id The id of the aggregate to load
 		 * @return true if the operation was successful, false otherwise
 		 */
-		virtual bool load(ID id) = 0;
+		//virtual bool load(ID id) = 0;
 
 		/**
 		 * @brief Load the aggregates with the given ids from the persistence layer
@@ -83,7 +83,7 @@ namespace DDD
 		 * @param ids The ids of the aggregates to load
 		 * @return true if the operation was successful, false otherwise
 		 */
-		virtual bool load(const std::vector<ID>& ids) = 0;
+		//virtual bool load(const std::vector<ID>& ids) = 0;
 
 		/**
 		 * @brief Update the given aggregates in the persistence layer
@@ -111,7 +111,7 @@ namespace DDD
 		 * 
 		 * @return true if the operation was successful, false otherwise
 		 */
-		virtual bool clear() = 0;
+		//virtual bool clear() = 0;
 
 		/**
 		 * @brief Check if the persistence layer contains the aggregate with the given id
@@ -119,13 +119,13 @@ namespace DDD
 		 * @param id The id of the aggregate to check
 		 * @return true if the aggregate exists in the persistence layer, false otherwise
 		 */
-		virtual bool contains(DDD::ID id) = 0;
+		//virtual bool contains(DDD::ID id) = 0;
 
 		/**
 		 * @brief Get the number of aggregates in the persistence layer
 		 * 
 		 * @return The number of aggregates in the persistence layer
 		 */
-		virtual size_t size() = 0;
+		//virtual size_t size() = 0;
 	};
 }
