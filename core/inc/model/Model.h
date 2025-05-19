@@ -7,6 +7,7 @@
 #include "IPersistence.h"
 #include <variant>
 #include <array>
+#include <utility> // for std::move
 
 namespace DDD
 {
@@ -75,6 +76,12 @@ namespace DDD
 		template <DerivedFromAggregate AGG> [[nodiscard]] std::vector<ID> getIDs() const;
 		[[nodiscard]] std::vector<ID> getIDs() const;
 
+		/**
+		 * @brief Takes a list of ID's and returns a list of ID's which are from the specific Aggregate type
+		 * @details The functions filters the ID's and only returns those which are from the specific Aggregate type
+		 */
+		template <DerivedFromAggregate AGG> [[nodiscard]] std::vector<ID> filterIDs(const std::vector<ID>& toFilter) const;
+
 		UniqueIDDomain& getIDDomain()
 		{
 			return m_idDomain;
@@ -94,6 +101,8 @@ namespace DDD
 		bool load();
 		bool load(const std::vector<ID>& ids);
 
+
+		
 
 #if LOGGER_LIBRARY_AVAILABLE == 1
 		void attachLogger(Log::LogObject* logger)
@@ -604,6 +613,25 @@ namespace DDD
 		}
 		return ids;
 	}
+
+	template <DerivedFromAggregate... Ts>
+	template <DerivedFromAggregate AGG> 
+	[[nodiscard]] std::vector<ID> Model<Ts...>::filterIDs(const std::vector<ID>& toFilter) const
+	{
+		std::vector<ID> filteredIDs;
+		filteredIDs.reserve(toFilter.size());
+		const AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
+		for (const ID& id : toFilter)
+		{
+			if (domain.repository.contains(id))
+			{
+				filteredIDs.push_back(id);
+			}
+		}
+		return filteredIDs;
+ 	}
+
+
 	template <DerivedFromAggregate... Ts>
 	template <DerivedFromIPersistance PER>
 	std::shared_ptr<PER> Model<Ts...>::attachPersistence()
@@ -716,4 +744,37 @@ namespace DDD
 		}
 		throw std::runtime_error("Aggregate container not found");
 	}
+}
+
+// lvalue + lvalue
+template <typename T>
+std::vector<T> operator+(const std::vector<T>& a, const std::vector<T>& b) {
+	std::vector<T> result;
+	result.reserve(a.size() + b.size());
+	result.insert(result.end(), a.begin(), a.end());
+	result.insert(result.end(), b.begin(), b.end());
+	return result;
+}
+
+// rvalue + lvalue
+template <typename T>
+std::vector<T> operator+(std::vector<T>&& a, const std::vector<T>& b) {
+	a.reserve(a.size() + b.size());
+	a.insert(a.end(), b.begin(), b.end());
+	return std::move(a);
+}
+
+// lvalue + rvalue
+template <typename T>
+std::vector<T> operator+(const std::vector<T>& a, std::vector<T>&& b) {
+	b.insert(b.begin(), a.begin(), a.end());
+	return std::move(b);
+}
+
+// rvalue + rvalue
+template <typename T>
+std::vector<T> operator+(std::vector<T>&& a, std::vector<T>&& b) {
+	a.reserve(a.size() + b.size());
+	a.insert(a.end(), std::make_move_iterator(b.begin()), std::make_move_iterator(b.end()));
+	return std::move(a);
 }
