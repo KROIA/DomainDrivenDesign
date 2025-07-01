@@ -1,7 +1,9 @@
 #pragma once
 #include "DDD_base.h"
+#include <string>
 #include <QObject>
 #include "utilities/IID.h"
+#include "utilities/Utilities.h"
 #include "ValueObject.h"
 
 namespace DDD
@@ -51,6 +53,27 @@ namespace DDD
 		bool isAlive() const
 		{
 			return m_alive;
+		}
+
+		/**
+		 * @brief
+		 * Converts the entity to a JSON object.
+		 * This function should be overridden in derived classes to include additional data.
+		 * 
+		 * @return QJsonObject containing the entity data
+		 */
+		virtual QJsonObject toJson()
+		{
+			QJsonObject entityData;
+			entityData["id"] = QString::fromStdString(getIDString());
+			entityData["alive"] = m_alive;
+			return QJsonObject{
+				{"Entity", entityData},
+			};
+		}
+		virtual std::string toString()
+		{
+			return jsonToString(toJson());
 		}
 
 	signals:
