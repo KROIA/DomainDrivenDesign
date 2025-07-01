@@ -84,7 +84,7 @@ namespace DDD
 			return m_isInRepository;
 		}
 
-		QJsonObject toJson() override
+		QJsonObject toJson() const override
 		{
 			QJsonObject data = Entity::toJson();
 			QJsonObject aggregateData;

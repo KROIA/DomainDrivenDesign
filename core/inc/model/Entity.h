@@ -4,6 +4,7 @@
 #include <QObject>
 #include "utilities/IID.h"
 #include "utilities/Utilities.h"
+#include "utilities/IJsonSerializable.h"
 #include "ValueObject.h"
 
 namespace DDD
@@ -25,7 +26,7 @@ namespace DDD
 	 *
 	 *   When the entity is marked for deletion, the entity gets removed automatically from the aggregate.
 	 */
-	class DDD_EXPORT Entity : public QObject, public IID
+	class DDD_EXPORT Entity : public QObject, public IID, public IJsonSerializable
 	{
 		Q_OBJECT
 	public:
@@ -62,7 +63,7 @@ namespace DDD
 		 * 
 		 * @return QJsonObject containing the entity data
 		 */
-		virtual QJsonObject toJson()
+		QJsonObject toJson() const override
 		{
 			QJsonObject entityData;
 			entityData["id"] = QString::fromStdString(getIDString());
