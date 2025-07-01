@@ -81,6 +81,14 @@ namespace DDD
 		{
 			m_status = Status::Invalid;
 		}
+		void invalidate(const std::string& message = "")
+		{
+			if (!message.empty())
+			{
+				addMessage(message);
+			}
+			m_status = Status::Invalid;
+		}
 
 		const std::vector<ValidationResult>& getSubResults() const
 		{
