@@ -13,16 +13,20 @@ namespace DDD
 		enum class Status
 		{
 			Valid,
-			Invalid,
-			Warning
+			Invalid
 		};
-		ValidationResult() = default;
+		ValidationResult(const std::string &title)
+			: m_title(title)
+			, m_status(Status::Valid)
+		{}
 		ValidationResult(const ValidationResult& other) 
-			: m_status(other.m_status)
+			: m_title(other.m_title)
+			, m_status(other.m_status)
 			, m_messages(other.m_messages)
 		{}
 		ValidationResult(ValidationResult&& other) noexcept
-			: m_status(std::move(other.m_status))
+			: m_title(std::move(other.m_title))
+			, m_status(std::move(other.m_status))
 			, m_messages(std::move(other.m_messages))
 		{}
 
@@ -34,6 +38,11 @@ namespace DDD
 		void setStatus(Status status)
 		{
 			m_status = status;
+		}
+
+		const std::string& getTitle() const
+		{
+			return m_title;
 		}
 
 		void addMessage(const std::string& message)
@@ -52,6 +61,10 @@ namespace DDD
 		{
 			m_messages.clear();
 		}
+		void clearSubResults()
+		{
+			m_subResults.clear();
+		}
 		bool isValid() const
 		{
 			return m_status == Status::Valid;
@@ -60,14 +73,33 @@ namespace DDD
 		{
 			return m_status == Status::Invalid;
 		}
-		bool isWarning() const
-		{
-			return m_status == Status::Warning;
-		}
 		void setValid()
 		{
 			m_status = Status::Valid;
-			clearMessages();
+		}
+		void setInvalid()
+		{
+			m_status = Status::Invalid;
+		}
+
+		const std::vector<ValidationResult>& getSubResults() const
+		{
+			return m_subResults;
+		}
+		void addSubResult(const ValidationResult& subResult)
+		{
+			if(!subResult.isValid())
+			{
+				m_status = Status::Invalid;
+			}
+			m_subResults.push_back(subResult);
+		}
+		void removeSubResult(size_t index)
+		{
+			if (index < m_subResults.size())
+			{
+				m_subResults.erase(m_subResults.begin() + index);
+			}
 		}
 
 		QJsonObject toJson() const override
@@ -79,13 +111,8 @@ namespace DDD
 				json["status"] = "Valid";
 				break;
 			case Status::Invalid:
-				json["status"] = "Invalid";
-				break;
-			case Status::Warning:
-				json["status"] = "Warning";
-				break;
 			default:
-				json["status"] = "Unknown";
+				json["status"] = "Invalid";
 				break;
 			}
 			QJsonArray messagesArray;
@@ -94,6 +121,14 @@ namespace DDD
 				messagesArray.append(QString::fromStdString(message));
 			}
 			json["messages"] = messagesArray;
+			json["title"] = QString::fromStdString(m_title);
+
+			QJsonArray subResultsArray;
+			for (const auto& subResult : m_subResults)
+			{
+				subResultsArray.append(subResult.toJson());
+			}
+			json["subResults"] = subResultsArray;
 			return json;
 		}
 		std::string toString() const
@@ -101,8 +136,15 @@ namespace DDD
 			return jsonToString(toJson());
 		}
 
+
+
+
 	private:
+		std::string m_title;
 		Status m_status{ Status::Valid };
 		std::vector<std::string> m_messages;
+
+
+		std::vector<ValidationResult> m_subResults;
 	};
 }
