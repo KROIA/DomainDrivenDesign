@@ -3,6 +3,7 @@
 #include <vector>
 #include "model/Aggregate.h"
 #include "IJsonSerializable.h"
+#include <QRegularExpression>
 
 
 namespace DDD
@@ -29,6 +30,32 @@ namespace DDD
 			, m_status(std::move(other.m_status))
 			, m_messages(std::move(other.m_messages))
 		{}
+
+		virtual ~ValidationResult() = default;
+
+		ValidationResult& operator=(const ValidationResult& other)
+		{
+			if (this != &other)
+			{
+				m_title = other.m_title;
+				m_status = other.m_status;
+				m_messages = other.m_messages;
+				m_subResults = other.m_subResults;
+			}
+			return *this;
+		}
+		ValidationResult& operator=(ValidationResult&& other) noexcept
+		{
+			if (this != &other)
+			{
+				m_title = std::move(other.m_title);
+				m_status = std::move(other.m_status);
+				m_messages = std::move(other.m_messages);
+				m_subResults = std::move(other.m_subResults);
+			}
+			return *this;
+		}
+
 
 
 		Status getStatus() const
@@ -145,7 +172,12 @@ namespace DDD
 		}
 
 
-
+		static bool matches(const std::string& text, const std::string& regex)
+		{
+			QRegularExpression re(QString::fromStdString(regex));
+			QRegularExpressionMatch match = re.match(QString::fromStdString(text));
+			return match.hasMatch();
+		}
 
 	private:
 		std::string m_title;
