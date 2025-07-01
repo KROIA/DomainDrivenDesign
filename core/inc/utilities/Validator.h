@@ -15,7 +15,7 @@ namespace DDD
 		Validator() = default;
 		virtual ~Validator() = default;
 
-		virtual ValidationResult validate(std::shared_ptr<Aggregate> aggregate) const = 0;
+		virtual ValidationResult validate(std::shared_ptr<Aggregate> aggregate) = 0;
 	private:
 	};
 }
