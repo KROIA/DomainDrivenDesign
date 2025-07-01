@@ -3,7 +3,6 @@
 #include <vector>
 #include "model/Aggregate.h"
 #include "IJsonSerializable.h"
-#include <QRegularExpression>
 
 
 namespace DDD
@@ -172,12 +171,7 @@ namespace DDD
 		}
 
 
-		static bool matches(const std::string& text, const std::string& regex)
-		{
-			QRegularExpression re(QString::fromStdString(regex));
-			QRegularExpressionMatch match = re.match(QString::fromStdString(text));
-			return match.hasMatch();
-		}
+		
 
 	private:
 		std::string m_title;
