@@ -8,4 +8,5 @@
 
 /// USER_SECTION_START 2
 #include "model/Model.h"
+#include "utilities/Validator.h"
 /// USER_SECTION_END
