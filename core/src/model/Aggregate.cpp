@@ -20,6 +20,7 @@ namespace DDD
 		}
 		if (!m_entities.contains(entity->getID()))
 		{
+			entity->setEntityParent(this);
 			m_entities.insert({ entity->getID(), entity });
 			connect(entity.get(), &Entity::deleteMarked, this, &Aggregate::onEntityDeleteMarketd);
 			connect(entity.get(), &Entity::dataChanged, this, &Aggregate::entityChanged);
@@ -38,6 +39,7 @@ namespace DDD
 		{
 			disconnect(it->second.get(), &Entity::deleteMarked, this, &Aggregate::onEntityDeleteMarketd);
 			disconnect(it->second.get(), &Entity::dataChanged, this, &Aggregate::entityChanged);
+			it->second.get()->setEntityParent(nullptr); // Clear parent pointer
 			m_entities.erase(it);
 			emit entityRemoved(id);
 			return true;

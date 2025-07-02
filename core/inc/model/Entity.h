@@ -28,11 +28,13 @@ namespace DDD
 	 */
 	class DDD_EXPORT Entity : public QObject, public IID, public IJsonSerializable
 	{
+		friend class Aggregate; // Allow Aggregate to access private members
 		Q_OBJECT
 	public:
 		Entity(const ID id)
 			: IID(id)
 			, m_alive(true)
+			, m_parent(nullptr) // Initialize parent to nullptr
 		{
 
 		}
@@ -42,6 +44,7 @@ namespace DDD
 		Entity& operator=(Entity&& other) noexcept
 		{
 			m_alive = other.m_alive;
+			m_parent = other.m_parent; // Move parent pointer
 			IID::operator=(std::move(other));
 			return *this;
 		}
@@ -87,8 +90,18 @@ namespace DDD
 			emit dataChanged(getID());
 		}
 
+		void setEntityParent(const Entity* parent)
+		{
+			m_parent = parent;
+		}
+		const Entity* getEntityParent() const {
+			return m_parent;
+		}
+
 	private:
 		bool m_alive;
+		const Entity* m_parent;
+		
 	};
 	
 }
