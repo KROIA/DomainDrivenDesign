@@ -1,7 +1,7 @@
 #pragma once
 #include "DDD_base.h"
 #include <vector>
-#include "model/Aggregate.h"
+#include "model/Entity.h"
 #include "ValidationResult.h"
 #include <QRegularExpression>
 
@@ -16,7 +16,7 @@ namespace DDD
 		Validator() = default;
 		virtual ~Validator() = default;
 
-		virtual ValidationResult validate(std::shared_ptr<Aggregate> aggregate) = 0;
+		virtual ValidationResult validate(std::shared_ptr<Entity> entity) = 0;
 
 		static bool matches(const std::string& text, const std::string& regex)
 		{
