@@ -57,6 +57,7 @@ namespace DDD
 		bool removeAggregate(const ID id);
 		template <DerivedFromAggregate AGG> void removeAggregates();
 		void clear();
+		bool removeDatabase();
 		template <DerivedFromAggregate AGG> [[nodiscard]] std::vector<std::shared_ptr<AGG>> getAggregates(const std::vector<ID>& idList);
 		template <DerivedFromAggregate AGG> [[nodiscard]] std::vector<std::shared_ptr<const AGG>> getAggregates(const std::vector<ID>& idList) const;
 		[[nodiscard]] std::vector<std::shared_ptr<Aggregate>> getAggregates(const std::vector<ID>& idList);
@@ -395,6 +396,15 @@ namespace DDD
 				}, agg);
 		}
 		m_idDomain.reset();
+	}
+
+	template <DerivedFromAggregate... Ts>
+	bool Model<Ts...>::removeDatabase()
+	{
+		SOE_MODEL_PROFILING_FUNCTION(SOE_COLOR_STAGE_1);
+		if (hasPersistanceAttached())
+			return m_persistence->removeDatabase();
+		return false;
 	}
 
 	template <DerivedFromAggregate... Ts>

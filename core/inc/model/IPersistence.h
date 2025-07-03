@@ -57,7 +57,7 @@ namespace DDD
 		 * @brief Removes all files from the filesystem that are associated with the database
 		 * @return true if the operation was successful, false otherwise
 		 */
-		//virtual bool removeOnFilesystem() = 0;
+		virtual bool removeDatabase() = 0;
 
 		/**
 		 * @brief Load all aggregates from the persistence layer
