@@ -60,9 +60,9 @@ namespace DDD
 		{
 			m_repository = nullptr;
 		}
-		const std::string_view& getName() const
+		static std::string getName()
 		{
-			return m_name;
+			return typeid(AGG).name();;
 		}
 	protected:
 		std::shared_ptr<AGG> registerInstance(std::shared_ptr<AGG> agg)
@@ -82,6 +82,5 @@ namespace DDD
 		}
 	private:
 		Repository<AGG>* m_repository;
-		const std::string_view m_name = typeid(AGG).name();
 	};
 }
