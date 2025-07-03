@@ -181,6 +181,15 @@ public:
 	}*/
 
 	/**
+	 * @brief Removes all files from the filesystem that are associated with the database
+	 * @return true if the operation was successful, false otherwise
+	 */
+	 bool removeDatabase() override
+	 {
+		 return true;
+	 }
+
+	/**
 	 * @brief Check if the persistance layer contains the aggregate with the given id
 	 *
 	 * @param id The id of the aggregate to check

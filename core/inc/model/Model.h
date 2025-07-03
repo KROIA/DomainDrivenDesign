@@ -401,7 +401,7 @@ namespace DDD
 	template <DerivedFromAggregate... Ts>
 	bool Model<Ts...>::removeDatabase()
 	{
-		SOE_MODEL_PROFILING_FUNCTION(SOE_COLOR_STAGE_1);
+		DDD_GENERAL_PROFILING_FUNCTION(DDD_COLOR_STAGE_1);
 		if (hasPersistanceAttached())
 			return m_persistence->removeDatabase();
 		return false;
