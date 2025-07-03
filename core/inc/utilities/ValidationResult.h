@@ -7,7 +7,7 @@
 
 namespace DDD
 {
-	class DDD_EXPORT ValidationResult : public IJsonSerializable
+	class ValidationResult : public IJsonSerializable
 	{
 	public:
 		enum class Status

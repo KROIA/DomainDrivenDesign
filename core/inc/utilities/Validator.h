@@ -10,7 +10,7 @@
 
 namespace DDD
 {
-	class DDD_EXPORT Validator
+	class Validator
 	{
 	public:
 		Validator() = default;
