@@ -60,7 +60,7 @@ namespace DDD
 		{
 			m_repository = nullptr;
 		}
-		static std::string getName()
+		static std::string getAggregateName()
 		{
 			return typeid(AGG).name();;
 		}
