@@ -150,13 +150,13 @@ namespace DDD
 		if (domain.factory)
 		{
 #if LOGGER_LIBRARY_AVAILABLE == 1
-			if (m_logger) m_logger->info("Unregistering factory for "+ std::string(domain.factory->getName()));
+			if (m_logger) m_logger->info("Unregistering factory for "+ std::string(domain.factory->getAggregateName()));
 #endif
 			domain.factory->unregister();
 		}
 		std::shared_ptr<FAC> factory = std::make_shared<FAC>(&domain.repository);
 #if LOGGER_LIBRARY_AVAILABLE == 1
-		if (m_logger) m_logger->info("Registering factory for " + std::string(factory->getName()));
+		if (m_logger) m_logger->info("Registering factory for " + std::string(factory->getAggregateName()));
 #endif
 		domain.factory = factory;
 		return factory;
