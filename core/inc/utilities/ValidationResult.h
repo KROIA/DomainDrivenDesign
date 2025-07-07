@@ -7,6 +7,10 @@
 
 namespace DDD
 {
+	/**
+	 * @brief This class represents the result of a validation process.
+	 * A result can contain additional sub-results, creating a tree structure of validation results.
+	 */
 	class ValidationResult : public IJsonSerializable
 	{
 	public:
@@ -149,20 +153,26 @@ namespace DDD
 				json["status"] = "Invalid";
 				break;
 			}
-			QJsonArray messagesArray;
-			for (const auto& message : m_messages)
+			if (!m_messages.empty())
 			{
-				messagesArray.append(QString::fromStdString(message));
+				QJsonArray messagesArray;
+				for (const auto& message : m_messages)
+				{
+					messagesArray.append(QString::fromStdString(message));
+				}
+				json["messages"] = messagesArray;
 			}
-			json["messages"] = messagesArray;
 			json["title"] = QString::fromStdString(m_title);
 
-			QJsonArray subResultsArray;
-			for (const auto& subResult : m_subResults)
+			if (!m_subResults.empty())
 			{
-				subResultsArray.append(subResult.toJson());
+				QJsonArray subResultsArray;
+				for (const auto& subResult : m_subResults)
+				{
+					subResultsArray.append(subResult.toJson());
+				}
+				json["subResults"] = subResultsArray;
 			}
-			json["subResults"] = subResultsArray;
 			return json;
 		}
 		std::string toString() const
