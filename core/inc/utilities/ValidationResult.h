@@ -27,11 +27,13 @@ namespace DDD
 			: m_title(other.m_title)
 			, m_status(other.m_status)
 			, m_messages(other.m_messages)
+			, m_subResults(other.m_subResults)
 		{}
 		ValidationResult(ValidationResult&& other) noexcept
 			: m_title(std::move(other.m_title))
 			, m_status(std::move(other.m_status))
 			, m_messages(std::move(other.m_messages))
+			, m_subResults(std::move(other.m_subResults))
 		{}
 
 		virtual ~ValidationResult() = default;
