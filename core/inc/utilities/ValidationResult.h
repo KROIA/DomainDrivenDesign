@@ -35,6 +35,19 @@ namespace DDD
 			, m_messages(std::move(other.m_messages))
 			, m_subResults(std::move(other.m_subResults))
 		{}
+		ValidationResult(const std::string &title, const std::vector<ValidationResult> &subResults)
+			: m_title(title)
+			, m_status(Status::Valid)
+			, m_subResults(subResults)
+		{
+			for (const auto& subResult : subResults)
+			{
+				if (!subResult.isValid())
+				{
+					m_status = Status::Invalid;
+				}
+			}
+		}
 
 		virtual ~ValidationResult() = default;
 
@@ -133,6 +146,13 @@ namespace DDD
 				m_status = Status::Invalid;
 			}
 			m_subResults.push_back(subResult);
+		}
+		void addSubResult(const std::vector<ValidationResult>& subResults)
+		{
+			for (const auto& subResult : subResults)
+			{
+				addSubResult(subResult);
+			}
 		}
 		void removeSubResult(size_t index)
 		{
