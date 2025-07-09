@@ -24,6 +24,13 @@ namespace DDD
 			QRegularExpressionMatch match = re.match(QString::fromStdString(text));
 			return match.hasMatch();
 		}
+
+		static bool matches(const std::u16string& text, const std::u16string& regex)
+		{
+			QRegularExpression re(QString::fromUtf16(regex.c_str()));
+			QRegularExpressionMatch match = re.match(QString::fromUtf16(text.c_str()));
+			return match.hasMatch();
+		}
 	private:
 	};
 }
