@@ -55,15 +55,52 @@ namespace DDD
 
 		AggregateFactory(Repository<AGG>* repo)
 			: m_repository(repo)
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			, m_logger(getAggregateName() + "Factory")
+#endif
 		{}
 		void unregister()
 		{
 			m_repository = nullptr;
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			setLoggerParentID(0);
+#endif
 		}
 		static std::string getAggregateName()
 		{
-			return typeid(AGG).name();;
+			std::string raw = typeid(AGG).name();
+			auto it = raw.rfind(":");
+			if (it != std::string::npos)
+			{
+				raw = raw.substr(it + 1);
+			}
+			it = raw.rfind("class ");
+			if (it != std::string::npos)
+			{
+				raw = raw.substr(it + 6);
+			}
+			return typeid(AGG).name();
 		}
+
+#if LOGGER_LIBRARY_AVAILABLE == 1
+		/**
+		 * @brief Gets called by the model during setup to attach this logger to the model as a child logger
+		 * @param parent logger, comming from the model
+		 */
+		void setLoggerParentID(const Log::LoggerID &id)
+		{
+			m_logger.setParentID(id);
+		}
+
+		const Log::LoggerID& getLoggerID() const
+		{
+			return m_logger.getID();
+		}
+		const Log::LoggerID& getLoggerParentID() const
+		{
+			return m_logger.getParentID();
+		}
+#endif
 	protected:
 		std::shared_ptr<AGG> registerInstance(std::shared_ptr<AGG> agg)
 		{
@@ -72,15 +109,56 @@ namespace DDD
 				if (m_repository->add(agg))
 					return agg;
 #if LOGGER_LIBRARY_AVAILABLE == 1
-				Logger::logError("AggregateFactory<AGG>::registerInstance(): Can't register object");
+				error("registerInstance(): Can't register object");
 #endif
 			}
 #if LOGGER_LIBRARY_AVAILABLE == 1
-			Logger::logError("AggregateFactory<AGG>::registerInstance(): This factory does not have a repository reference set.");
+			error("registerInstance(): This factory does not have a repository reference set.");
 #endif
 			return nullptr;
 		}
+
+		/**
+		 * @brief Helpoer function to log messages.
+		 * @param msg
+		 */
+		void debug(const std::string& msg) const 
+		{ 
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			m_logger.debug(msg); 
+#else
+			DDD_UNUSED(msg);
+#endif
+		}
+		void info(const std::string& msg) const 
+		{ 
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			m_logger.info(msg);
+#else
+			DDD_UNUSED(msg);
+#endif
+		}
+		void warning(const std::string& msg) const 
+		{
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			m_logger.warning(msg); 
+#else
+			DDD_UNUSED(msg);
+#endif
+		}
+		void error(const std::string& msg) const 
+		{ 
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			m_logger.error(msg); 
+#else
+			DDD_UNUSED(msg);
+#endif
+		}
+
 	private:
 		Repository<AGG>* m_repository;
+#if LOGGER_LIBRARY_AVAILABLE == 1
+		mutable Log::LogObject m_logger;
+#endif
 	};
 }

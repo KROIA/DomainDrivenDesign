@@ -114,6 +114,11 @@ namespace DDD
 				std::visit([logger](auto& obj) {
 					obj.repository.attachLogger(logger);
 					}, agg);
+				if (logger)
+					agg.factory->setLoggerParentID(logger->getID());
+				else
+					agg.factory->setLoggerParentID(0);
+
 			}
 		}
 #endif
@@ -156,7 +161,11 @@ namespace DDD
 		}
 		std::shared_ptr<FAC> factory = std::make_shared<FAC>(&domain.repository);
 #if LOGGER_LIBRARY_AVAILABLE == 1
-		if (m_logger) m_logger->info("Registering factory for " + std::string(factory->getAggregateName()));
+		if (m_logger)
+		{
+			m_logger->info("Registering factory for " + std::string(factory->getAggregateName()));
+			factory->setLoggerParentID(m_logger->getID());
+		}
 #endif
 		domain.factory = factory;
 		return factory;
