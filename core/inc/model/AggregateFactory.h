@@ -92,11 +92,11 @@ namespace DDD
 			m_logger.setParentID(id);
 		}
 
-		const Log::LoggerID& getLoggerID() const
+		Log::LoggerID getLoggerID() const
 		{
 			return m_logger.getID();
 		}
-		const Log::LoggerID& getLoggerParentID() const
+		Log::LoggerID getLoggerParentID() const
 		{
 			return m_logger.getParentID();
 		}
