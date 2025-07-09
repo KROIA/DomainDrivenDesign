@@ -113,10 +113,13 @@ namespace DDD
 			{
 				std::visit([logger](auto& obj) {
 					obj.repository.attachLogger(logger);
-					if (logger)
-						obj.factory->setLoggerParentID(logger->getID());
-					else
-						obj.factory->setLoggerParentID(0);
+					if (obj.factory)
+					{
+						if (logger)
+							obj.factory->setLoggerParentID(logger->getID());
+						else
+							obj.factory->setLoggerParentID(0);
+					}
 					}, agg);
 			}
 		}
