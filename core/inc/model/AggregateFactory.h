@@ -79,7 +79,7 @@ namespace DDD
 			{
 				raw = raw.substr(it + 6);
 			}
-			return typeid(AGG).name();
+			return raw;
 		}
 
 #if LOGGER_LIBRARY_AVAILABLE == 1
