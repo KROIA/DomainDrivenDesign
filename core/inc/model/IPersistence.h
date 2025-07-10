@@ -82,6 +82,13 @@ namespace DDD
 		virtual std::vector<std::shared_ptr<AggregateLock>> getLocks() = 0;
 
 		/**
+		 * @brief Gets the lock for the aggregate with the given id.
+		 * @param id 
+		 * @return nullptr if the aggregate is not locked, otherwise a shared pointer to the lock object
+		 */
+		virtual std::shared_ptr<AggregateLock> getLock(const ID& id) = 0;
+
+		/**
 		 * @brief Registers a user to the current session.
 		 * @param user 
 		 * @return true if the user was successfully logged on, false otherwise
