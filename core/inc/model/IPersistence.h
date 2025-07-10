@@ -73,13 +73,13 @@ namespace DDD
 		 * @param id 
 		 * @return true if the aggregate is locked, false otherwise
 		 */
-		virtual bool isLocked(const ID& id) const = 0;
+		virtual bool isLocked(const ID& id) = 0;
 
 		/**
 		 * @brief Gets all locks that are currently active.
 		 * @return vector of currently active locks
 		 */
-		virtual std::vector<std::shared_ptr<AggregateLock>> getLocks() const = 0;
+		virtual std::vector<std::shared_ptr<AggregateLock>> getLocks() = 0;
 
 		/**
 		 * @brief Registers a user to the current session.
@@ -99,6 +99,6 @@ namespace DDD
 		 * @brief Gets all users that are currently logged on.
 		 * @return vector of currently logged on users
 		 */
-		virtual std::vector<std::shared_ptr<User>> getLoggedOnUsers() const = 0;
+		virtual std::vector<std::shared_ptr<User>> getLoggedOnUsers() = 0;
 	};
 }
