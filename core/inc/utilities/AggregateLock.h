@@ -1,12 +1,13 @@
 #pragma once
 #include "DDD_base.h"
-#include "IJsonSerializable.h"
+#include <string>
 
 namespace DDD
 {
-	class DDD_EXPORT AggregateLock : public IJsonSerializable
+	class DDD_EXPORT AggregateLock
 	{
 	public:
 
+		virtual std::string toString() = 0;
 	};
 }
