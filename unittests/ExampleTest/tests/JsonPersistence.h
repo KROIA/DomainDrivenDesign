@@ -230,6 +230,44 @@ public:
 		return dir.entryList().size();
 	}*/
 
+	 bool lock(const DDD::ID& id) override
+	 {
+		 return false;
+	 }
+
+	 bool unlock(const DDD::ID& id)override
+	 {
+		 return false;
+	 }
+
+
+	 bool isLocked(const DDD::ID& id) const override
+	 {
+		 return false;
+	 }
+
+
+	 std::vector<std::shared_ptr<DDD::AggregateLock>> getLocks() const override
+	 {
+		 return {};
+	 }
+
+
+	 bool logOnUser(std::shared_ptr<DDD::User> user) override
+	 {
+		 return false;
+	 }
+
+	 bool logOffUser(std::shared_ptr<DDD::User> user) override
+	 {
+		 return false;
+	 }
+
+	 std::vector<std::shared_ptr<DDD::User>> getLoggedOnUsers() const override
+	 {
+		 return {};
+	 }
+
 	private:
 		std::string m_folderPath;
 		std::shared_ptr<AnimalFactory> animalFactory;

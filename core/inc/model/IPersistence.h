@@ -7,6 +7,8 @@
 
 namespace DDD
 {
+	class AggregateLock;
+	class User;
 	class IPersistence
 	{
 	public:
@@ -30,30 +32,6 @@ namespace DDD
 		virtual bool save(const std::vector<ID>& ids) = 0;
 
 		/**
-		 * @brief Save the given aggregate to the persistence layer
-		 * @details Save only the given aggregate but not deleting the others
-		 * @param id The id for the aggregate to save
-		 * @return true if the operation was successful, false otherwise
-		 */
-		//virtual bool save(ID id) = 0;
-
-		/**
-		 * @brief Remove the given aggregates from the persistence layer
-		 * 
-		 * @param ids The aggregate ids to remove
-		 * @return true if the operation was successful, false otherwise
-		 */
-		//virtual bool remove(const std::vector<ID>& ids) = 0;
-
-		/**
-		 * @brief Remove the given aggregate from the persistence layer
-		 *
-		 * @param id The id of the aggregate to remove
-		 * @return true if the operation was successful, false otherwise
-		 */
-		//virtual bool remove(ID id) = 0;
-
-		/**
 		 * @brief Removes all files from the filesystem that are associated with the database
 		 * @return true if the operation was successful, false otherwise
 		 */
@@ -68,15 +46,6 @@ namespace DDD
 		virtual bool load() = 0;
 
 		/**
-		 * @brief Load the aggregate with the given id from the persistence layer
-		 * @warning Use a factory to instantiate a new object, passing the needed data to the constructor
-		 * 
-		 * @param id The id of the aggregate to load
-		 * @return true if the operation was successful, false otherwise
-		 */
-		//virtual bool load(ID id) = 0;
-
-		/**
 		 * @brief Load the aggregates with the given ids from the persistence layer
 		 * @warning Use a factory to instantiate a new object, passing the needed data to the constructor
 		 *
@@ -86,46 +55,50 @@ namespace DDD
 		virtual bool load(const std::vector<ID>& ids) = 0;
 
 		/**
-		 * @brief Update the given aggregates in the persistence layer
-		 * @details The aggregates must already exist in the persistence layer in order to succeed.
-		 *			Load the data from the persistence layer in to the object, overwriting the current data.
-		 *
-		 * @param aggregates The aggregates to update
-		 * @return true if the operation was successful, false otherwise
-		 */ 
-		//virtual bool update(const std::vector<ID>& aggregates) = 0;
-
-		/**
-		 * @brief Update the given aggregate in the persistence layer
-		 * @details The aggregate must already exist in the persistence layer in order to succeed.
-		 *			Load the data from the persistence layer in to the object, overwriting the current data.
-		 *
-		 * @param aggregate The aggregate to update
+		 * @brief Locks an aggregate with the given id.
+		 * @param id 
 		 * @return true if the operation was successful, false otherwise
 		 */
-		//virtual bool update(std::shared_ptr<Aggregate> aggregate) = 0;
+		virtual bool lock(const ID& id) = 0;
 
 		/**
-		 * @brief Clear the persistence layer
-		 * @details Remove all aggregates from the persistence layer
-		 * 
+		 * @brief Unlocks an aggregate with the given id.
+		 * @param id 
 		 * @return true if the operation was successful, false otherwise
 		 */
-		//virtual bool clear() = 0;
+		virtual bool unlock(const ID& id) = 0;
 
 		/**
-		 * @brief Check if the persistence layer contains the aggregate with the given id
-		 *
-		 * @param id The id of the aggregate to check
-		 * @return true if the aggregate exists in the persistence layer, false otherwise
+		 * @brief Checks if a given aggregate is locked.
+		 * @param id 
+		 * @return true if the aggregate is locked, false otherwise
 		 */
-		//virtual bool contains(DDD::ID id) = 0;
+		virtual bool isLocked(const ID& id) const = 0;
 
 		/**
-		 * @brief Get the number of aggregates in the persistence layer
-		 * 
-		 * @return The number of aggregates in the persistence layer
+		 * @brief Gets all locks that are currently active.
+		 * @return vector of currently active locks
 		 */
-		//virtual size_t size() = 0;
+		virtual std::vector<std::shared_ptr<AggregateLock>> getLocks() const = 0;
+
+		/**
+		 * @brief Registers a user to the current session.
+		 * @param user 
+		 * @return true if the user was successfully logged on, false otherwise
+		 */
+		virtual bool logOnUser(std::shared_ptr<User> user) = 0;
+
+		/**
+		 * @brief Logs off a user from the current session.
+		 * @param user
+		 * @return true if the user was successfully logged off, false otherwise
+		 */
+		virtual bool logOffUser(std::shared_ptr<User> user) = 0;
+
+		/**
+		 * @brief Gets all users that are currently logged on.
+		 * @return vector of currently logged on users
+		 */
+		virtual std::vector<std::shared_ptr<User>> getLoggedOnUsers() const = 0;
 	};
 }

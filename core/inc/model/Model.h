@@ -11,6 +11,9 @@
 
 namespace DDD
 {
+	class AggregateLock;
+	class User;
+
 	template <DerivedFromAggregate... Ts>
 	class Model
 	{
@@ -102,7 +105,14 @@ namespace DDD
 		bool load();
 		bool load(const std::vector<ID>& ids);
 
+		bool lockAggregate(const ID& id);
+		bool unlockAggregate(const ID& id);
+		bool isAggregateLocked(const ID& id) const;
+		std::vector<std::shared_ptr<AggregateLock>> getLockedAggregates() const;
 
+		bool logOnUser(std::shared_ptr<User> user);
+		bool logOffUser(std::shared_ptr<User> user);
+		std::vector<std::shared_ptr<User>> getLoggedOnUsers() const;
 		
 
 #if LOGGER_LIBRARY_AVAILABLE == 1
@@ -731,6 +741,118 @@ namespace DDD
 		else
 		{
 			return m_persistence->load(ids);
+		}
+	}
+
+	template <DerivedFromAggregate... Ts>
+	bool Model<Ts...>::lockAggregate(const ID& id)
+	{
+		if (!m_persistence)
+		{
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			if (m_logger) m_logger->error("No persistence layer attached to the model");
+#endif
+			return false;
+		}
+		else
+		{
+			return m_persistence->lock(id);
+		}
+	}
+
+	template <DerivedFromAggregate... Ts>
+	bool Model<Ts...>::unlockAggregate(const ID& id)
+	{
+		if (!m_persistence)
+		{
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			if (m_logger) m_logger->error("No persistence layer attached to the model");
+#endif
+			return false;
+		}
+		else
+		{
+			return m_persistence->unlock(id);
+		}
+	}
+
+	template <DerivedFromAggregate... Ts>
+	bool Model<Ts...>::isAggregateLocked(const ID& id) const
+	{
+		if (!m_persistence)
+		{
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			if (m_logger) m_logger->error("No persistence layer attached to the model");
+#endif
+			return false;
+		}
+		else
+		{
+			return m_persistence->isLocked(id);
+		}
+	}
+
+	template <DerivedFromAggregate... Ts>
+	std::vector<std::shared_ptr<AggregateLock>> Model<Ts...>::getLockedAggregates() const
+	{
+		if (!m_persistence)
+		{
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			if (m_logger) m_logger->error("No persistence layer attached to the model");
+#endif
+			return false;
+		}
+		else
+		{
+			return m_persistence->getLocks();
+		}
+	}
+
+	template <DerivedFromAggregate... Ts>
+	bool Model<Ts...>::logOnUser(std::shared_ptr<User> user)
+	{
+		if (!m_persistence)
+		{
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			if (m_logger) m_logger->error("No persistence layer attached to the model");
+#endif
+			return false;
+		}
+		else
+		{
+			return m_persistence->logOnUser(user);
+		}
+	}
+
+	template <DerivedFromAggregate... Ts>
+	bool Model<Ts...>::logOffUser(std::shared_ptr<User> user)
+	{
+		if (!m_persistence)
+		{
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			if (m_logger) m_logger->error("No persistence layer attached to the model");
+#endif
+			return false;
+		}
+		else
+		{
+			return m_persistence->logOffUser(user);
+		}
+	}
+
+	template <DerivedFromAggregate... Ts>
+	std::vector<std::shared_ptr<User>> Model<Ts...>::getLoggedOnUsers() const
+	{
+		if (!m_persistence)
+		{
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			if (m_logger) m_logger->error("No persistence layer attached to the model");
+#endif
+			return false;
+		}
+		else
+		{
+			return m_persistence->getLoggedOnUsers();
 		}
 	}
 
