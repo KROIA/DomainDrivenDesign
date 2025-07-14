@@ -4,10 +4,10 @@
 
 namespace DDD
 {
-	class DDD_EXPORT AggregateLock
+	class AggregateLock
 	{
 	public:
-		virtual ~AggregateLock() {}
+		virtual ~AggregateLock() = default;
 
 		virtual std::string toString() = 0;
 	};

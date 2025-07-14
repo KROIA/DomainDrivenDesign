@@ -4,10 +4,10 @@
 
 namespace DDD
 {
-	class DDD_EXPORT User
+	class User
 	{
 	public:
-		virtual ~User() {};
+		virtual ~User() = default;
 
 
 		virtual std::string toString() = 0;
