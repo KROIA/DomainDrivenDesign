@@ -801,7 +801,7 @@ namespace DDD
 #if LOGGER_LIBRARY_AVAILABLE == 1
 			if (m_logger) m_logger->error("No persistence layer attached to the model");
 #endif
-			return false;
+			return {};
 		}
 		else
 		{
@@ -865,7 +865,7 @@ namespace DDD
 #if LOGGER_LIBRARY_AVAILABLE == 1
 			if (m_logger) m_logger->error("No persistence layer attached to the model");
 #endif
-			return false;
+			return {};
 		}
 		else
 		{

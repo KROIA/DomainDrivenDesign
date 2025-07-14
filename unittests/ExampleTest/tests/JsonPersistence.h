@@ -241,15 +241,20 @@ public:
 	 }
 
 
-	 bool isLocked(const DDD::ID& id) const override
+	 bool isLocked(const DDD::ID& id) override
 	 {
 		 return false;
 	 }
 
 
-	 std::vector<std::shared_ptr<DDD::AggregateLock>> getLocks() const override
+	 std::vector<std::shared_ptr<DDD::AggregateLock>> getLocks() override
 	 {
 		 return {};
+	 }
+
+	 std::shared_ptr<DDD::AggregateLock> getLock(const DDD::ID& id) override
+	 {
+		 return nullptr;
 	 }
 
 
@@ -263,7 +268,7 @@ public:
 		 return false;
 	 }
 
-	 std::vector<std::shared_ptr<DDD::User>> getLoggedOnUsers() const override
+	 std::vector<std::shared_ptr<DDD::User>> getLoggedOnUsers() override
 	 {
 		 return {};
 	 }
