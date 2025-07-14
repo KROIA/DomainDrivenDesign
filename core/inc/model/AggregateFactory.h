@@ -119,7 +119,7 @@ namespace DDD
 		}
 
 		/**
-		 * @brief Helpoer function to log messages.
+		 * @brief Helper function to log messages.
 		 * @param msg
 		 */
 		void debug(const std::string& msg) const 

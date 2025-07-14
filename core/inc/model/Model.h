@@ -563,8 +563,11 @@ namespace DDD
 		for (auto& agg : m_domains)
 		{
 			std::visit([&objs](auto& obj) {
-				std::vector<std::shared_ptr<Aggregate>> deleted = obj.repository.getDeleted();
-				objs.insert(objs.end(), deleted.begin(), deleted.end());
+				auto deleted = obj.repository.getDeleted();
+				for (auto& ins : deleted)
+				{
+					objs.push_back(ins);
+				}
 				}, agg);
 		}
 		return objs;
@@ -585,8 +588,11 @@ namespace DDD
 		for (auto& agg : m_domains)
 		{
 			std::visit([&objs](auto& obj) {
-				std::vector<std::shared_ptr<const Aggregate>> deleted = obj.repository.getDeleted();
-				objs.insert(objs.end(), deleted.begin(), deleted.end());
+				auto deleted = obj.repository.getDeleted();
+				for (auto& ins : deleted)
+				{
+					objs.push_back(ins);
+				}
 				}, agg);
 		}
 		return objs;
