@@ -38,8 +38,13 @@ namespace DDD
 		}
 
 		template <typename FAC> std::shared_ptr<FAC> createFactory();
+		template <typename FAC> void removeFactory();
 
 		template <DerivedFromService SER> std::shared_ptr<SER> createService();
+		template <DerivedFromService SER> void removeService();
+		template <DerivedFromAggregate AGG> void removeAllServices();
+		void removeAllGeneralServices();
+
 		template <DerivedFromService SER> std::shared_ptr<ServiceExecutionResult> executeService();
 		
 
@@ -184,6 +189,25 @@ namespace DDD
 		return factory;
 	}
 
+
+	template <DerivedFromAggregate... Ts>
+	template <typename FAC>
+	void Model<Ts...>::removeFactory()
+	{
+		static_assert((std::is_base_of_v<AggregateFactory<typename FAC::AggregateType>, FAC>), "FAC must be derived from AggregateFactory");
+		AggregateContainer<typename FAC::AggregateType>& domain = getAggregateContainer<typename FAC::AggregateType>();
+		if (domain.factory)
+		{
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			if (m_logger) m_logger->info("Unregistering factory for " + std::string(domain.factory->getAggregateName()));
+#endif
+			domain.factory->unregister();
+			domain.factory = nullptr;
+		}
+	}
+
+
+
 	template <DerivedFromAggregate... Ts>
 	template <DerivedFromService SER>
 	std::shared_ptr<SER> Model<Ts...>::createService()
@@ -229,6 +253,69 @@ namespace DDD
 			return service;
 		}
 		return nullptr;
+	}
+
+	template <DerivedFromAggregate... Ts>
+	template <DerivedFromService SER>
+	void Model<Ts...>::removeService()
+	{
+		//static_assert((std::is_base_of_v<AggregateService<typename SER::AggregateType>, SER>), "SER must be derived from Service");
+		if constexpr (std::is_base_of_v<AggregateService<typename SER::AggregateType>, SER>)
+		{
+			AggregateContainer<typename SER::AggregateType>& domain = getAggregateContainer<typename SER::AggregateType>();
+
+			for (size_t i = 0; i < domain.services.size(); ++i) {
+				if (dynamic_cast<SER*>(domain.services[i].get())) {
+					domain.services[i]->unregister();
+					domain.services.erase(domain.services.begin() + i);
+					return;
+				}
+			}
+		}
+		else
+		{
+			for (size_t i=0; i< m_generalServices.size(); ++i)
+			{
+				if (dynamic_cast<SER*>(m_generalServices[i].get())) {
+					m_generalServices[i]->unregister();
+					m_generalServices.erase(m_generalServices.begin() + i);
+					return;
+				}
+			}
+		}
+#if LOGGER_LIBRARY_AVAILABLE == 1
+		if (m_logger) m_logger->info("Service to remove not found");
+#endif
+	}
+
+	template <DerivedFromAggregate... Ts>
+	template <DerivedFromAggregate AGG>
+	void Model<Ts...>::removeAllServices()
+	{
+		static_assert((std::is_same_v<AGG, Ts> || ...), "Aggregate type <AGG> not found in this model");
+
+		AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
+		for (size_t i = 0; i < domain.services.size(); ++i) {
+			domain.services[i]->unregister();
+		}
+		domain.services.clear();
+		
+#if LOGGER_LIBRARY_AVAILABLE == 1
+		if (m_logger) m_logger->info("Service to remove not found");
+#endif
+	}
+
+	template <DerivedFromAggregate... Ts>
+	void Model<Ts...>::removeAllGeneralServices()
+	{
+		/*for (size_t i = 0; i < m_generalServices.size(); ++i) {
+			m_generalServices[i]->unregister();
+		}*/
+		m_generalServices.clear();
+
+#if LOGGER_LIBRARY_AVAILABLE == 1
+		if (m_logger) m_logger->info("Service to remove not found");
+#endif
 	}
 
 	template <DerivedFromAggregate... Ts>
