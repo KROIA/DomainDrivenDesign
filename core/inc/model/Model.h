@@ -104,6 +104,10 @@ namespace DDD
 		{
 			return m_persistence != nullptr;
 		}
+		void removePersistance()
+		{
+			m_persistence = nullptr;
+		}
 
 		bool save() const;
 		bool save(const std::vector<ID>& ids) const;
