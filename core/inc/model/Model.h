@@ -140,7 +140,7 @@ namespace DDD
 			}
 			for (auto& agg : m_domains)
 			{
-				std::visit([m_factoryLogger](auto& obj) {
+				std::visit([this](auto& obj) {
 					obj.repository.attachLogger(m_factoryLogger);
 					if (obj.factory)
 					{
