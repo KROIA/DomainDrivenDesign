@@ -129,14 +129,23 @@ namespace DDD
 		void attachLogger(Log::LogObject* logger)
 		{
 			m_logger = logger;
+			if (m_logger)
+			{
+				m_factoryLogger = new Log::LogObject(m_logger->getID(), "FactoryLogger");
+			}
+			else
+			{
+				delete m_factoryLogger;
+				m_factoryLogger = nullptr;
+			}
 			for (auto& agg : m_domains)
 			{
-				std::visit([logger](auto& obj) {
-					obj.repository.attachLogger(logger);
+				std::visit([m_factoryLogger](auto& obj) {
+					obj.repository.attachLogger(m_factoryLogger);
 					if (obj.factory)
 					{
-						if (logger)
-							obj.factory->setLoggerParentID(logger->getID());
+						if (m_factoryLogger)
+							obj.factory->setLoggerParentID(m_factoryLogger->getID());
 						else
 							obj.factory->setLoggerParentID(0);
 					}
@@ -164,6 +173,7 @@ namespace DDD
 
 #if LOGGER_LIBRARY_AVAILABLE == 1
 		Log::LogObject* m_logger = nullptr;
+		Log::LogObject* m_factoryLogger = nullptr;
 #endif
 
 	};
@@ -183,11 +193,12 @@ namespace DDD
 		}
 		std::shared_ptr<FAC> factory = std::make_shared<FAC>(&domain.repository);
 #if LOGGER_LIBRARY_AVAILABLE == 1
-		if (m_logger)
+		if (m_factoryLogger && m_logger)
 		{
 			m_logger->info("Registering factory for " + std::string(factory->getAggregateName()));
-			factory->setLoggerParentID(m_logger->getID());
+			//factory->setLoggerParentID(m_factoryLogger->getID());
 		}
+		factory->setLoggerParentID(m_factoryLogger ? m_factoryLogger->getID() : 0);
 #endif
 		domain.factory = factory;
 		return factory;
