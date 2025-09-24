@@ -89,7 +89,7 @@ namespace DDD
 /// USER_SECTION_START 4
 
 /// USER_SECTION_END
-	class DDD_EXPORT Profiler
+	class DDD_API Profiler
 	{
 	public:
 		/// USER_SECTION_START 5
@@ -112,7 +112,7 @@ namespace DDD
 
 
 #if LOGGER_LIBRARY_AVAILABLE == 1
-	class DDD_EXPORT Logger 
+	class DDD_API Logger 
 	{
 		/// USER_SECTION_START 8
 

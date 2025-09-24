@@ -11,13 +11,13 @@
 #ifndef BUILD_STATIC
 	//#pragma message("DDD_LIB is a shared library")
 	#if defined(DDD_LIB)
-		#define DDD_EXPORT __declspec(dllexport)
+		#define DDD_API __declspec(dllexport)
 	#else
-		#define DDD_EXPORT __declspec(dllimport)
+		#define DDD_API __declspec(dllimport)
 	#endif
 #else 
 	//#pragma message("DDD_LIB is a static library")
-	#define DDD_EXPORT
+	#define DDD_API
 #endif
 
 /// USER_SECTION_START 2

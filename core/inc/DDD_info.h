@@ -29,7 +29,7 @@ namespace DDD
 
 /// USER_SECTION_END
 
-	class DDD_EXPORT LibraryInfo
+	class DDD_API LibraryInfo
 	{
 		LibraryInfo() = delete;
 		LibraryInfo(const LibraryInfo&) = delete;
