@@ -26,7 +26,7 @@ namespace DDD
 	 *
 	 *   When the entity is marked for deletion, the entity gets removed automatically from the aggregate.
 	 */
-	class DDD_EXPORT Entity : public QObject, public IID, public IJsonSerializable
+	class DDD_API Entity : public QObject, public IID, public IJsonSerializable
 	{
 		friend class Aggregate; // Allow Aggregate to access private members
 		Q_OBJECT

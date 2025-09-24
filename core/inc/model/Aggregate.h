@@ -14,7 +14,7 @@ namespace DDD
 	 * 
 	 * 
 	 */
-	class DDD_EXPORT Aggregate : public Entity
+	class DDD_API Aggregate : public Entity
 	{
 		Q_OBJECT
 			friend class IRepository;

@@ -11,7 +11,7 @@
 
 namespace DDD
 {
-	class DDD_EXPORT IRepository : public QObject
+	class DDD_API IRepository : public QObject
 	{
 		Q_OBJECT
 	public:
