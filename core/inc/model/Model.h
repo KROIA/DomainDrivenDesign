@@ -116,7 +116,7 @@ namespace DDD
 
 		bool lockAggregate(const ID& id);
 		bool unlockAggregate(const ID& id);
-		bool tryUnlockAggregateIfLockedBy(const ID& id, std::shared_ptr<User> user);
+		bool tryUnlockAggregateIfLocked(const ID& id);
 		bool isAggregateLocked(const ID& id) const;
 		std::vector<std::shared_ptr<AggregateLock>> getLockedAggregates() const;
 		std::shared_ptr<AggregateLock> getLock(const ID& id) const;
@@ -887,7 +887,7 @@ namespace DDD
 	}
 
 	template <DerivedFromAggregate... Ts>
-	bool Model<Ts...>::tryUnlockAggregateIfLockedBy(const ID& id, std::shared_ptr<User> user)
+	bool Model<Ts...>::tryUnlockAggregateIfLocked(const ID& id)
 	{
 		if (!m_persistence)
 		{
@@ -898,7 +898,7 @@ namespace DDD
 		}
 		else
 		{
-			return m_persistence->tryUnlockIfLockedBy(id, user);
+			return m_persistence->tryUnlockIfLocked(id);
 		}
 	}
 

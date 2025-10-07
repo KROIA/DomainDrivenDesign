@@ -239,7 +239,7 @@ public:
 	 {
 		 return false;
 	 }
-	 bool tryUnlockIfLockedBy(const DDD::ID& id, std::shared_ptr<DDD::User> user) override
+	 bool tryUnlockIfLocked(const DDD::ID& id) override
 	 {
 		 return false;
 	 }
