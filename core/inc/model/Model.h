@@ -187,7 +187,7 @@ namespace DDD
 		if (domain.factory)
 		{
 #if LOGGER_LIBRARY_AVAILABLE == 1
-			if (m_logger) m_logger->info("Unregistering factory for "+ std::string(domain.factory->getAggregateName()));
+			if (m_logger) m_logger->debug("Unregistering factory for "+ std::string(domain.factory->getAggregateName()));
 #endif
 			domain.factory->unregister();
 		}
@@ -195,8 +195,8 @@ namespace DDD
 #if LOGGER_LIBRARY_AVAILABLE == 1
 		if (m_factoryLogger && m_logger)
 		{
-			m_logger->info("Registering factory for " + std::string(factory->getAggregateName()));
 			//factory->setLoggerParentID(m_factoryLogger->getID());
+			m_logger->debug("Registering factory for " + std::string(factory->getAggregateName()));
 		}
 		factory->setLoggerParentID(m_factoryLogger ? m_factoryLogger->getID() : 0);
 #endif
@@ -214,7 +214,7 @@ namespace DDD
 		if (domain.factory)
 		{
 #if LOGGER_LIBRARY_AVAILABLE == 1
-			if (m_logger) m_logger->info("Unregistering factory for " + std::string(domain.factory->getAggregateName()));
+			if (m_logger) m_logger->debug("Unregistering factory for " + std::string(domain.factory->getAggregateName()));
 #endif
 			domain.factory->unregister();
 			domain.factory = nullptr;
@@ -244,7 +244,7 @@ namespace DDD
 
 			std::shared_ptr<SER> service = std::make_shared<SER>(&domain.repository);
 #if LOGGER_LIBRARY_AVAILABLE == 1
-			if (m_logger) m_logger->info("Registering service: "+std::string(service->getName()));
+			if (m_logger) m_logger->debug("Registering service: "+std::string(service->getName()));
 #endif
 			domain.services.push_back(service);
 			return service;
@@ -262,7 +262,7 @@ namespace DDD
 			}
 			std::shared_ptr<SER> service = std::make_shared<SER>();
 #if LOGGER_LIBRARY_AVAILABLE == 1
-			if (m_logger) m_logger->info("Registering service: " + std::string(service->getName()));
+			if (m_logger) m_logger->debug("Registering service: " + std::string(service->getName()));
 #endif
 			m_generalServices.push_back(service);
 			return service;
@@ -299,7 +299,7 @@ namespace DDD
 			}
 		}
 #if LOGGER_LIBRARY_AVAILABLE == 1
-		if (m_logger) m_logger->info("Service to remove not found");
+		if (m_logger) m_logger->debug("Service to remove not found");
 #endif
 	}
 
@@ -316,7 +316,7 @@ namespace DDD
 		domain.services.clear();
 		
 #if LOGGER_LIBRARY_AVAILABLE == 1
-		if (m_logger) m_logger->info("Service to remove not found");
+		if (m_logger) m_logger->debug("Service to remove not found");
 #endif
 	}
 
@@ -329,7 +329,7 @@ namespace DDD
 		m_generalServices.clear();
 
 #if LOGGER_LIBRARY_AVAILABLE == 1
-		if (m_logger) m_logger->info("Service to remove not found");
+		if (m_logger) m_logger->debug("Service to remove not found");
 #endif
 	}
 
@@ -343,7 +343,7 @@ namespace DDD
 			for (auto& service : domain.services) {
 				if (auto* ptr = dynamic_cast<SER*>(service.get())) {
 #if LOGGER_LIBRARY_AVAILABLE == 1
-					if (m_logger) m_logger->info("Executing service: " + std::string(ptr->getName()));
+					if (m_logger) m_logger->debug("Executing service: " + std::string(ptr->getName()));
 #endif
 					return ptr->execute();
 				}
@@ -355,7 +355,7 @@ namespace DDD
 			{
 				if (auto* ptr = dynamic_cast<SER*>(service.get())) {
 #if LOGGER_LIBRARY_AVAILABLE == 1
-					if (m_logger) m_logger->info("Executing service: " + std::string(ptr->getName()));
+					if (m_logger) m_logger->debug("Executing service: " + std::string(ptr->getName()));
 #endif
 					return ptr->execute();
 				}
@@ -779,12 +779,12 @@ namespace DDD
 		if (m_persistence)
 		{
 #if LOGGER_LIBRARY_AVAILABLE == 1
-			if (m_logger) m_logger->info("Detaching persistence layer");
+			if (m_logger) m_logger->debug("Detaching persistence layer");
 #endif
 			m_persistence = nullptr;
 		}
 #if LOGGER_LIBRARY_AVAILABLE == 1
-		if (m_logger) m_logger->info("Attaching persistence layer");
+		if (m_logger) m_logger->debug("Attaching persistence layer");
 #endif
 		std::shared_ptr<PER> persistence = std::make_shared<PER>();
 		m_persistence = persistence;

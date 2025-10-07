@@ -154,7 +154,7 @@ namespace DDD
 			if (agg)
 			{
 #if LOGGER_LIBRARY_AVAILABLE == 1
-				if (m_logger) m_logger->info("Object: " + std::to_string(agg->getID()) + " marked for delete");
+				if (m_logger) m_logger->debug("Object: " + std::to_string(agg->getID()) + " marked for delete");
 #endif
 				remove(agg->getID());
 			}
