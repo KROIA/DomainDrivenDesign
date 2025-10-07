@@ -178,13 +178,8 @@ namespace DDD
 			// Remove existing object
 			remove(id);
 #if LOGGER_LIBRARY_AVAILABLE == 1
-			if (m_logger) m_logger->warning("Repository<" + std::string(typeid(AGG).name()) + ">::add(): Aggregate with ID " + IID::getIDString(id) + " already exists in the repository, it will be replaced by the new instance.");
+			if (m_logger) m_logger->debug("Repository<" + std::string(typeid(AGG).name()) + ">::add(): Aggregate with ID " + IID::getIDString(id) + " already exists in the repository, it will be replaced by the new instance.");
 #endif
-			/*
-#if LOGGER_LIBRARY_AVAILABLE == 1
-			Logger::logError("Repository<" + std::string(typeid(AGG).name()) + ">::add(): Aggregate with ID " + IID::getIDString(id) + " already exists in the repository.");
-#endif
-			return false;*/
 		}
 		if (!aggregate->isAlive())
 		{
