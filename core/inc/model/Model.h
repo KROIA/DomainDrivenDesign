@@ -116,6 +116,7 @@ namespace DDD
 
 		bool lockAggregate(const ID& id);
 		bool unlockAggregate(const ID& id);
+		bool tryUnlockAggregateIfLockedBy(const ID& id, std::shared_ptr<User> user);
 		bool isAggregateLocked(const ID& id) const;
 		std::vector<std::shared_ptr<AggregateLock>> getLockedAggregates() const;
 		std::shared_ptr<AggregateLock> getLock(const ID& id) const;
@@ -882,6 +883,22 @@ namespace DDD
 		else
 		{
 			return m_persistence->unlock(id);
+		}
+	}
+
+	template <DerivedFromAggregate... Ts>
+	bool Model<Ts...>::tryUnlockAggregateIfLockedBy(const ID& id, std::shared_ptr<User> user)
+	{
+		if (!m_persistence)
+		{
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			if (m_logger) m_logger->error("No persistence layer attached to the model");
+#endif
+			return false;
+		}
+		else
+		{
+			return m_persistence->tryUnlockIfLockedBy(id, user);
 		}
 	}
 

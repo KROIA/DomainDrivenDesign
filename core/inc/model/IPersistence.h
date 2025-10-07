@@ -69,6 +69,15 @@ namespace DDD
 		virtual bool unlock(const ID& id) = 0;
 
 		/**
+		 * @brief Tries to unlock an aggregate with the given id for the given user, 
+		 *        if the aggregate is locked by that user.
+		 * @param id 
+		 * @param user 
+		 * @return true if the object is now unlocked, false otherwise
+		 */
+		virtual bool tryUnlockIfLockedBy(const ID& id, std::shared_ptr<User> user) = 0;
+
+		/**
 		 * @brief Checks if a given aggregate is locked.
 		 * @param id 
 		 * @return true if the aggregate is locked, false otherwise
