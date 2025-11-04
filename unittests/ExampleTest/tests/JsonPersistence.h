@@ -131,7 +131,7 @@ public:
 		return false;
 	 }
 
-	 bool loadMetadata(std::shared_ptr<DDD::MetadataContainer> metadata) override
+	 bool load(std::shared_ptr<DDD::MetadataContainer> metadata) override
 	 {
 		 return false;
 	 }

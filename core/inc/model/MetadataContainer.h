@@ -10,13 +10,13 @@ namespace DDD
 	public:
 		virtual ~MetadataContainer() = default;
 
-		[[nodiscard]] ID getNextObjectID() const
+		[[nodiscard]] ID getCurrentHighestID() const
 		{
-			return m_nextObjectID;
+			return m_currentHighestID;
 		}
-		void setNextObjectID(ID nextID)
+		void setCurrentHighestID(ID id)
 		{
-			m_nextObjectID = nextID;
+			m_currentHighestID = id;
 		}
 
 
@@ -40,6 +40,6 @@ namespace DDD
 		}
 
 	private:
-		ID m_nextObjectID = 1;
+		ID m_currentHighestID = INVALID_ID;
 	};
 }

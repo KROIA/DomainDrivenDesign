@@ -59,7 +59,8 @@ namespace DDD
 
 		// Default constructor initializes each instance
 		Model() 
-			: m_metadata(std::make_shared<MetadataContainer>())
+			: m_idDomain(std::bind(&Model::tryReserveNextID, this, std::placeholders::_1))
+			, m_metadata(std::make_shared<MetadataContainer>())
 		{
 
 		}
@@ -201,6 +202,9 @@ namespace DDD
 			}
 		}
 #endif
+
+	protected:
+		bool tryReserveNextID(ID id);
 
 	private:
 		// Retrieve an instance of a specific type X
@@ -1183,6 +1187,29 @@ namespace DDD
 	//
 	// PRIVATE
 	//
+
+	template <DerivedFromAggregate... Ts>
+	bool Model<Ts...>::tryReserveNextID(ID id)
+	{
+		if (!m_metadata || !m_persistence)
+			return true;
+		if (manualLockDatabase())
+		{
+			bool success = false;
+			if (m_persistence->load(m_metadata))
+			{
+				ID highestID = m_metadata->getCurrentHighestID();
+				if (id > highestID)
+				{
+					m_metadata->setCurrentHighestID(id);
+					success = m_persistence->save(m_metadata);
+				}
+			}
+			success &= manualUnlockDatabase();
+			return success;
+		}
+		return false;
+	}
 
 	template <DerivedFromAggregate... Ts>
 	template <typename AGG>

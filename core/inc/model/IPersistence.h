@@ -68,7 +68,7 @@ namespace DDD
 		 * @param metadata The metadata container to load the metadata into
 		 * @return true if the operation was successful, false otherwise
 		 */
-		virtual bool loadMetadata(std::shared_ptr<MetadataContainer> metadata) = 0;
+		virtual bool load(std::shared_ptr<MetadataContainer> metadata) = 0;
 
 		/**
 		 * @brief Locks an aggregate with the given id.

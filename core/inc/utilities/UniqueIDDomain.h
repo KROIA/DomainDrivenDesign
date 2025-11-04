@@ -8,7 +8,11 @@ namespace DDD
 	class UniqueIDDomain
 	{
 	public:
-		UniqueIDDomain() = default;
+		UniqueIDDomain(const std::function<bool(ID)> &reserveFunc)
+			: m_tryReserveNewID(reserveFunc)
+		{
+
+		}
 		UniqueIDDomain(const UniqueIDDomain& other) = delete;
 		UniqueIDDomain(UniqueIDDomain&& other) noexcept
 			: m_currentID(other.m_currentID)
@@ -31,7 +35,17 @@ namespace DDD
 
 		[[nodiscard]] ID getNextID()
 		{
-			return ++m_currentID;
+			ID nextID = m_currentID++;
+			size_t timeoutCounter = 0;
+			while (!m_tryReserveNewID(nextID))
+			{
+				nextID = m_currentID++;
+				if (timeoutCounter++ > 100)
+				{
+					return nextID; // give up after 100 tries and hope that the new id will not collide
+				}
+			}
+			return nextID;
 		}
 		[[nodiscard]] ID getCurrentID() const
 		{
@@ -74,5 +88,6 @@ namespace DDD
 		}
 	private:
 		ID m_currentID = 0;
+		std::function<bool(ID) > m_tryReserveNewID;
 	};
 }
