@@ -1006,16 +1006,15 @@ namespace DDD
 		if (m_manualLockDatabase)
 			return true;
 		if (!m_persistence)
+			return false;
+		if (m_persistence->lockDatabase())
 		{
-			if (m_persistence->lockDatabase())
-			{
 #if LOGGER_LIBRARY_AVAILABLE == 1
-				if (m_logger) 
-					m_logger->debug("Locked database manually");
+			if (m_logger) 
+				m_logger->debug("Locked database manually");
 #endif
-				m_manualLockDatabase = true;
-				return true;
-			}
+			m_manualLockDatabase = true;
+			return true;
 		}
 		return false;
 	}
@@ -1026,17 +1025,17 @@ namespace DDD
 		if (!m_manualLockDatabase)
 			return true;
 		if (!m_persistence)
+			return false;
+		if (m_persistence->unlockDatabase())
 		{
-			if (m_persistence->unlockDatabase())
-			{
 #if LOGGER_LIBRARY_AVAILABLE == 1
-				if (m_logger)
-					m_logger->debug("Unlocked database manually");
+			if (m_logger)
+				m_logger->debug("Unlocked database manually");
 #endif
-				m_manualLockDatabase = false;
-				return true;
-			}
+			m_manualLockDatabase = false;
+			return true;
 		}
+		
 		return false;
 	}
 
