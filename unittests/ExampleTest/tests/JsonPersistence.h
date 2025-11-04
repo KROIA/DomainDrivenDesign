@@ -297,6 +297,11 @@ public:
 		 return false;
 	 }
 
+	 bool isDatabaseLocked() const override
+	 {
+		 return false;
+	 }
+
 	private:
 		std::string m_folderPath;
 		std::shared_ptr<AnimalFactory> animalFactory;

@@ -146,5 +146,7 @@ namespace DDD
 		 * @return true if the database is unlocked, false otherwise
 		 */
 		virtual bool unlockDatabase() = 0;
+
+		virtual bool isDatabaseLocked() const = 0;
 	};
 }

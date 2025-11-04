@@ -151,7 +151,7 @@ namespace DDD
 
 		bool manualLockDatabase();
 		bool manualUnlockDatabase();
-		bool isDatabaseManuallyLocked() const {	return m_manualLockDatabase; }
+		bool isDatabaseManuallyLocked() const;
 
 		bool lockAggregate(const ID& id);
 		bool unlockAggregate(const ID& id);
@@ -223,7 +223,6 @@ namespace DDD
 		UniqueIDDomain m_idDomain;
 		std::shared_ptr<IPersistence> m_persistence;
 		std::shared_ptr<MetadataContainer> m_metadata;
-		bool m_manualLockDatabase;
 
 #if LOGGER_LIBRARY_AVAILABLE == 1
 		Log::LogObject* m_logger = nullptr;
@@ -1003,17 +1002,17 @@ namespace DDD
 	template <DerivedFromAggregate... Ts>
 	bool Model<Ts...>::manualLockDatabase()
 	{
-		if (m_manualLockDatabase)
-			return true;
 		if (!m_persistence)
 			return false;
+#if LOGGER_LIBRARY_AVAILABLE == 1
+		bool wasLocked = m_persistence->isDatabaseLocked();
+#endif
 		if (m_persistence->lockDatabase())
 		{
 #if LOGGER_LIBRARY_AVAILABLE == 1
-			if (m_logger) 
+			if (m_logger && wasLocked != m_persistence->isDatabaseLocked())
 				m_logger->debug("Locked database manually");
 #endif
-			m_manualLockDatabase = true;
 			return true;
 		}
 		return false;
@@ -1022,21 +1021,25 @@ namespace DDD
 	template <DerivedFromAggregate... Ts>
 	bool Model<Ts...>::manualUnlockDatabase()
 	{
-		if (!m_manualLockDatabase)
-			return true;
 		if (!m_persistence)
 			return false;
 		if (m_persistence->unlockDatabase())
 		{
 #if LOGGER_LIBRARY_AVAILABLE == 1
-			if (m_logger)
+			if (m_logger && !m_persistence->isDatabaseLocked())
 				m_logger->debug("Unlocked database manually");
 #endif
-			m_manualLockDatabase = false;
 			return true;
 		}
-		
 		return false;
+	}
+
+	template <DerivedFromAggregate... Ts>
+	bool Model<Ts...>::isDatabaseManuallyLocked() const
+	{
+		if (!m_persistence)
+			return false;
+		return m_persistence->isDatabaseLocked();
 	}
 
 	template <DerivedFromAggregate... Ts>
