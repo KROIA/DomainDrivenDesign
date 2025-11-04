@@ -102,12 +102,19 @@ namespace DDD
 		}
 #endif
 	protected:
+		virtual void onInstanceRegistered(std::shared_ptr<AGG> agg)
+		{
+			DDD_UNUSED(agg);
+		}
 		std::shared_ptr<AGG> registerInstance(std::shared_ptr<AGG> agg)
 		{
 			if (m_repository)
 			{
 				if (m_repository->add(agg))
+				{
+					onInstanceRegistered(agg);
 					return agg;
+				}
 #if LOGGER_LIBRARY_AVAILABLE == 1
 				error("registerInstance(): Can't register object");
 #endif
