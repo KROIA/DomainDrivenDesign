@@ -51,14 +51,14 @@ private:
 class PersonFactory : public DDD::AggregateFactory<Person>
 {
 public:
-	PersonFactory(DDD::Repository<Person>* repo)
-		: AggregateFactory(repo)
+	PersonFactory()
+		: AggregateFactory()
 	{}
 	~PersonFactory() {}
 
 	std::shared_ptr<Person> createAggregate()
 	{
-		return registerInstance(std::make_shared<Person>());
+		return std::make_shared<Person>();
 	}
 protected:
 	
@@ -68,14 +68,14 @@ private:
 class AnimalFactory : public DDD::AggregateFactory<Animal>
 {
 public:
-	AnimalFactory(DDD::Repository<Animal>* repo)
-		: AggregateFactory(repo)
+	AnimalFactory()
+		: AggregateFactory()
 	{}
 	~AnimalFactory() {}
 
 	std::shared_ptr<Animal> createAggregate()
 	{
-		return registerInstance(std::make_shared<Animal>());
+		return std::make_shared<Animal>();
 	}
 protected:
 	
@@ -176,7 +176,9 @@ int main(int argc, char* argv[]){
 	model.createService<GeneralService>();
 
 	auto person = personFactory->createAggregate();
+	model.addAggregate(person);
 	auto animal = animalFactory->createAggregate();
+	model.addAggregate(animal);
 
 
 	//

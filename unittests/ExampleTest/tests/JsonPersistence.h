@@ -52,6 +52,11 @@ public:
 		return false;
 	}
 
+	bool save(std::shared_ptr<DDD::MetadataContainer> metadata)	override
+	{
+		return false;
+	}
+
 	/**
 	 * @brief Save the given aggregate to the persistence layer
 	 * @details Save only the given aggregate but not deleting the others
@@ -124,6 +129,11 @@ public:
 	 bool load(const std::vector<DDD::ID>& ids) override
 	 {
 		return false;
+	 }
+
+	 bool loadMetadata(std::shared_ptr<DDD::MetadataContainer> metadata) override
+	 {
+		 return false;
 	 }
 
 	/**
@@ -275,6 +285,16 @@ public:
 	 std::vector<std::shared_ptr<DDD::User>> getLoggedOnUsers() override
 	 {
 		 return {};
+	 }
+
+	 bool lockDatabase() override
+	 {
+		 return false;
+	 }
+
+	 bool unlockDatabase() override
+	 {
+		 return false;
 	 }
 
 	private:

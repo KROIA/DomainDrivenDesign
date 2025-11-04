@@ -110,17 +110,21 @@ private:
 		TEST_START;
 
 		std::shared_ptr<Animal> animal = catFactory->createAggregate();
+		model.addAggregate(animal);
 		TEST_ASSERT(animal != nullptr);
 		TEST_ASSERT(animal->getID() > DDD::INVALID_ID);
 		animal = catFactory->createAggregate();
+		model.addAggregate(animal);
 		ids.push_back(animal->getID());
 		TEST_ASSERT(animal != nullptr);
 		TEST_ASSERT(animal->getID() > DDD::INVALID_ID);
 		animal = catFactory->createAggregate();
+		model.addAggregate(animal);
 		ids.push_back(animal->getID());
 		TEST_ASSERT(animal != nullptr);
 		TEST_ASSERT(animal->getID() > DDD::INVALID_ID);
 		animal = catFactory->createAggregate();
+		model.addAggregate(animal);
 		ids.push_back(animal->getID());
 		TEST_ASSERT(animal != nullptr);
 		TEST_ASSERT(animal->getID() > DDD::INVALID_ID);

@@ -78,14 +78,14 @@ public:
 class CatFactory : public DDD::AggregateFactory<Cat>
 {
 public:
-	CatFactory(DDD::Repository<Cat>* repo)
-		: AggregateFactory(repo)
+	CatFactory()
+		: AggregateFactory()
 	{}
 	~CatFactory() {}
 
 	std::shared_ptr<Cat> createAggregate()
 	{
-		return registerInstance(std::make_shared<Cat>());
+		return std::make_shared<Cat>();
 	}
 protected:
 

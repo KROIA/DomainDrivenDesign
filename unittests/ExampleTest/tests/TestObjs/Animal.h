@@ -65,14 +65,14 @@ private:
 class AnimalFactory : public DDD::AggregateFactory<Animal>
 {
 public:
-	AnimalFactory(DDD::Repository<Animal>* repo)
-		: AggregateFactory(repo)
+	AnimalFactory()
+		: AggregateFactory()
 	{}
 	~AnimalFactory() {}
 
 	std::shared_ptr<Animal> createAggregate()
 	{
-		return registerInstance(std::make_shared<Animal>());
+		return std::make_shared<Animal>();
 	}
 protected:
 

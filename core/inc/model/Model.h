@@ -27,13 +27,40 @@ namespace DDD
 			AggregateContainer(UniqueIDDomain& domain)
 				: repository(domain)
 			{}
+			bool isAggregateTypeForThis(std::shared_ptr<Aggregate> agg)
+			{
+				return dynamic_pointer_cast<AGG>(agg) != nullptr;
+			}
+			bool tryAddToRepository(std::shared_ptr<Aggregate> agg)
+			{
+				std::shared_ptr<AGG> casted = dynamic_pointer_cast<AGG>(agg);
+				if (casted)
+				{
+					return repository.add(casted);
+				}
+				return false;
+			}
+			bool replaceInRepository(std::shared_ptr<Aggregate> agg)
+			{
+				std::shared_ptr<AGG> casted = dynamic_pointer_cast<AGG>(agg);
+				if (casted)
+				{
+					if (repository.remove(casted->getID()))
+					{
+						return repository.add(casted);
+					}
+				}
+				return false;
+			}
 		};
 
 	public:
 		static constexpr size_t aggregateTypeCount = sizeof...(Ts);
 
 		// Default constructor initializes each instance
-		Model() {
+		Model() 
+			: m_metadata(std::make_shared<MetadataContainer>())
+		{
 
 		}
 
@@ -82,6 +109,11 @@ namespace DDD
 		void clearDeletedAggregates();
 		template <DerivedFromAggregate AGG> void clearDeletedAggregates();
 
+		bool addAggregate(std::shared_ptr<Aggregate> aggregate);
+		bool replaceAggregate(std::shared_ptr<Aggregate> aggregate);
+		std::vector<bool> addAggregate(const std::vector<std::shared_ptr<Aggregate>>& aggregates);
+		std::vector<bool> replaceAggregate(const std::vector<std::shared_ptr<Aggregate>>& aggregates);
+
 		template <DerivedFromAggregate AGG> [[nodiscard]] std::vector<ID> getIDs() const;
 		[[nodiscard]] std::vector<ID> getIDs() const;
 
@@ -111,8 +143,14 @@ namespace DDD
 
 		bool save() const;
 		bool save(const std::vector<ID>& ids) const;
+		bool saveMetadata() const;
 		bool load();
 		bool load(const std::vector<ID>& ids);
+		bool loadMetadata();
+
+		bool manualLockDatabase();
+		bool manualUnlockDatabase();
+		bool isDatabaseManuallyLocked() const {	return m_manualLockDatabase; }
 
 		bool lockAggregate(const ID& id);
 		bool unlockAggregate(const ID& id);
@@ -125,6 +163,15 @@ namespace DDD
 		bool logOffUser(std::shared_ptr<User> user);
 		std::vector<std::shared_ptr<User>> getLoggedOnUsers() const;
 		
+
+		void setMetadataContainer(std::shared_ptr<MetadataContainer> metadata)
+		{
+			m_metadata = metadata;
+		}
+		std::shared_ptr<MetadataContainer> getMetadataContainer() const
+		{
+			return m_metadata;
+		}
 
 #if LOGGER_LIBRARY_AVAILABLE == 1
 		void attachLogger(Log::LogObject* logger)
@@ -171,6 +218,8 @@ namespace DDD
 		std::vector<std::shared_ptr<Service>> m_generalServices;
 		UniqueIDDomain m_idDomain;
 		std::shared_ptr<IPersistence> m_persistence;
+		std::shared_ptr<MetadataContainer> m_metadata;
+		bool m_manualLockDatabase;
 
 #if LOGGER_LIBRARY_AVAILABLE == 1
 		Log::LogObject* m_logger = nullptr;
@@ -192,7 +241,7 @@ namespace DDD
 #endif
 			domain.factory->unregister();
 		}
-		std::shared_ptr<FAC> factory = std::make_shared<FAC>(&domain.repository);
+		std::shared_ptr<FAC> factory = std::make_shared<FAC>();
 #if LOGGER_LIBRARY_AVAILABLE == 1
 		if (m_factoryLogger && m_logger)
 		{
@@ -793,6 +842,71 @@ namespace DDD
 	}
 
 	template <DerivedFromAggregate... Ts>
+	bool Model<Ts...>::addAggregate(std::shared_ptr<Aggregate> aggregate)
+	{
+		bool result = false;
+		for (auto& agg : m_domains)
+		{
+			std::visit([&aggregate, &result](auto& obj) {
+				if(obj.isAggregateTypeForThis(aggregate))
+					result = obj.tryAddToRepository(aggregate);
+				}, agg);
+		}
+		return result;
+	}
+	template <DerivedFromAggregate... Ts>
+	bool Model<Ts...>::replaceAggregate(std::shared_ptr<Aggregate> aggregate)
+	{
+		bool result = false;
+		for (auto& agg : m_domains)
+		{
+			std::visit([&aggregate, &result](auto& obj) {
+				if (obj.isAggregateTypeForThis(aggregate))
+					result = obj.replaceInRepository(aggregate);
+				}, agg);
+		}
+		return result;
+	}
+
+
+	template <DerivedFromAggregate... Ts>
+	std::vector<bool> Model<Ts...>::addAggregate(const std::vector<std::shared_ptr<Aggregate>>& aggregates)
+	{
+		std::vector<bool> results(aggregates.size(), false);
+		for (auto& agg : m_domains)
+		{
+			std::visit([&aggregates, &results](auto& obj) {
+				for (size_t i=0; i<aggregates.size(); ++i)
+				{
+					auto aggregate = aggregates[i];
+					if (obj.isAggregateTypeForThis(aggregate))
+						results[i] = obj.tryAddToRepository(aggregate);
+				}
+				}, agg);
+		}
+		return results;
+	}
+
+	template <DerivedFromAggregate... Ts>
+	std::vector<bool> Model<Ts...>::replaceAggregate(const std::vector<std::shared_ptr<Aggregate>>& aggregates)
+	{
+		std::vector<bool> results(aggregates.size(), false);
+		for (auto& agg : m_domains)
+		{
+			std::visit([&aggregates, &results](auto& obj) {
+				for (size_t i = 0; i < aggregates.size(); ++i)
+				{
+					auto aggregate = aggregates[i];
+					if (obj.isAggregateTypeForThis(aggregate))
+						results[i] = obj.replaceInRepository(aggregate);
+				}
+				}, agg);
+		}
+		return results;
+	}
+
+
+	template <DerivedFromAggregate... Ts>
 	bool Model<Ts...>::save() const
 	{
 		if (!m_persistence)
@@ -824,6 +938,20 @@ namespace DDD
 	}
 
 	template <DerivedFromAggregate... Ts>
+	bool Model<Ts...>::saveMetadata() const
+	{
+		if (!m_metadata)
+			return false;
+		m_metadata->onSaveBegin();
+		if (m_persistence->save(m_metadata))
+		{
+			m_metadata->onSaveEnd();
+			return true;
+		}
+		return false;
+	}
+
+	template <DerivedFromAggregate... Ts>
 	bool Model<Ts...>::load()
 	{
 		if (!m_persistence)
@@ -852,6 +980,60 @@ namespace DDD
 		{
 			return m_persistence->load(ids);
 		}
+	}
+
+	template <DerivedFromAggregate... Ts>
+	bool Model<Ts...>::loadMetadata()
+	{
+		if (!m_metadata)
+			return false;
+		m_metadata->onLoadBegin();
+		if (m_persistence->load(m_metadata))
+		{
+			m_metadata->onLoadEnd();
+			return true;
+		}
+		return false;
+	}
+
+	template <DerivedFromAggregate... Ts>
+	bool Model<Ts...>::manualLockDatabase()
+	{
+		if (m_manualLockDatabase)
+			return true;
+		if (!m_persistence)
+		{
+			if (m_persistence->lockDatabase())
+			{
+#if LOGGER_LIBRARY_AVAILABLE == 1
+				if (m_logger) 
+					m_logger->debug("Locked database manually");
+#endif
+				m_manualLockDatabase = true;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	template <DerivedFromAggregate... Ts>
+	bool Model<Ts...>::manualUnlockDatabase()
+	{
+		if (!m_manualLockDatabase)
+			return true;
+		if (!m_persistence)
+		{
+			if (m_persistence->unlockDatabase())
+			{
+#if LOGGER_LIBRARY_AVAILABLE == 1
+				if (m_logger)
+					m_logger->debug("Unlocked database manually");
+#endif
+				m_manualLockDatabase = false;
+				return true;
+			}
+		}
+		return false;
 	}
 
 	template <DerivedFromAggregate... Ts>

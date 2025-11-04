@@ -2,6 +2,7 @@
 #include "DDD_base.h"
 #include <vector>
 #include "model/Aggregate.h"
+#include "model/MetadataContainer.h"
 
 
 
@@ -32,6 +33,13 @@ namespace DDD
 		virtual bool save(const std::vector<ID>& ids) = 0;
 
 		/**
+		 * @brief Save the given metadata to the persistence layer
+		 * @param metadata
+		 * @return true if the operation was successful, false otherwise
+		 */
+		virtual bool save(std::shared_ptr<MetadataContainer> metadata) = 0;
+
+		/**
 		 * @brief Removes all files from the filesystem that are associated with the database
 		 * @return true if the operation was successful, false otherwise
 		 */
@@ -53,6 +61,14 @@ namespace DDD
 		 * @return true if the operation was successful, false otherwise
 		 */
 		virtual bool load(const std::vector<ID>& ids) = 0;
+
+		/**
+		 * @brief Load the metadata from the persistence layer
+		 *
+		 * @param metadata The metadata container to load the metadata into
+		 * @return true if the operation was successful, false otherwise
+		 */
+		virtual bool loadMetadata(std::shared_ptr<MetadataContainer> metadata) = 0;
 
 		/**
 		 * @brief Locks an aggregate with the given id.
@@ -115,5 +131,20 @@ namespace DDD
 		 * @return vector of currently logged on users
 		 */
 		virtual std::vector<std::shared_ptr<User>> getLoggedOnUsers() = 0;
+
+
+		/**
+		 * @brief Locks the database for atomic access
+		 * All other methodes of this interface that access the database must not lock the database if this methode was called.
+		 * If this methode was not called, all methodes must lock the database for their operation.
+		 * @return true if the database is locked, false otherwise
+		 */
+		virtual bool lockDatabase() = 0;
+
+		/**
+		 * @brief Unlocks the database
+		 * @return true if the database is unlocked, false otherwise
+		 */
+		virtual bool unlockDatabase() = 0;
 	};
 }
