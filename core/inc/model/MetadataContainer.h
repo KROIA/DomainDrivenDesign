@@ -9,7 +9,7 @@ namespace DDD
 		
 	public:
 		MetadataContainer() = default;
-		MetadataContainer(const MetadataContainer&) 
+		MetadataContainer(const MetadataContainer& other) 
 			: m_currentHighestID(other.m_currentHighestID)
 		{
 		}
