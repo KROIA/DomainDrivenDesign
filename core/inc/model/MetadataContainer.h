@@ -8,6 +8,16 @@ namespace DDD
 	{
 		
 	public:
+		MetadataContainer() = default;
+		MetadataContainer(const MetadataContainer&) 
+			: m_currentHighestID(other.m_currentHighestID)
+		{
+		}
+		MetadataContainer(MetadataContainer&& other) noexcept
+			: m_currentHighestID(other.m_currentHighestID)
+		{
+			other.m_currentHighestID = INVALID_ID;
+		}
 		virtual ~MetadataContainer() = default;
 
 		[[nodiscard]] ID getCurrentHighestID() const

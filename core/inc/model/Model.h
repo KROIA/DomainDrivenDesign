@@ -1205,6 +1205,12 @@ namespace DDD
 					success = m_persistence->save(m_metadata);
 				}
 			}
+			else
+			{
+				// Try to save new metadata anyway
+				m_metadata->setCurrentHighestID(id);
+				success = m_persistence->save(m_metadata);
+			}
 			success &= manualUnlockDatabase();
 			return success;
 		}
