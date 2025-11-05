@@ -18,41 +18,180 @@ namespace DDD
 	class Model
 	{
 		template<DerivedFromAggregate AGG>
-		struct AggregateContainer
+		class AggregateContainer
 		{
-			Repository<AGG> repository;
-			std::shared_ptr<AggregateFactory<AGG>> factory;
-			std::vector<std::shared_ptr<AggregateService<AGG>>> services;
-
-			AggregateContainer(UniqueIDDomain& domain)
-				: repository(domain)
+		public:
+			AggregateContainer(UniqueIDDomain& domain, 
+				const std::function<void(const std::vector<ID>&)> &aggregateAddedSignal,
+				const std::function<void(const std::vector<ID>&)> &aggregateReplacedSignal,
+				const std::function<void(const std::vector<ID>&)> &aggregateRemovedSignal)
+				: m_repository(domain)
+				, m_aggregateAddedSignal(aggregateAddedSignal)
+				, m_aggregateReplacedSignal(aggregateReplacedSignal)
+				, m_aggregateRemovedSignal(aggregateRemovedSignal)
 			{
 			}
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			void attachLogger(Log::LogObject* logger)
+			{
+				m_repository.attachLogger(logger);
+				Log::LoggerID id = (logger ? logger->getID(): 0);
+				if (m_factory)
+					m_factory->setLoggerParentID(id);
+			}
+#endif
+			void setFactory(std::shared_ptr<AggregateFactory<AGG>> fac)
+			{
+				m_factory = fac;
+			}
+			std::shared_ptr<AggregateFactory<AGG>> getFactory() const
+			{
+				return m_factory;
+			}
+			void setServices(const std::vector<std::shared_ptr<AggregateService<AGG>>>& servs)
+			{
+				m_services = servs;
+			}
+			void addService(std::shared_ptr<AggregateService<AGG>> serv)
+			{
+				m_services.push_back(serv);
+			}
+			template <DerivedFromService SER>
+			std::shared_ptr<SER> createService()
+			{
+				std::shared_ptr<SER> service = std::make_shared<SER>(&m_repository);
+				m_services.push_back(service);
+				return service;
+			}
+			void clearServices()
+			{
+				for (size_t i = 0; i < m_services.size(); ++i) {
+					m_services[i]->unregister();
+				}
+				m_services.clear();
+			}
+			void removeService(size_t index)
+			{
+				if (index < m_services.size())
+				{
+					m_services[index]->unregister();
+					m_services.erase(m_services.begin() + index);
+				}
+			}
+			AggregateService<AGG> getService(size_t index) const
+			{
+				if (index < m_services.size())
+				{
+					return *m_services[index];
+				}
+				return nullptr;
+			}
+			const std::vector<std::shared_ptr<AggregateService<AGG>>>& getServices() const
+			{
+				return m_services;
+			}
+
+
 			bool isAggregateTypeForThis(std::shared_ptr<Aggregate> agg)
 			{
 				return dynamic_pointer_cast<AGG>(agg) != nullptr;
 			}
-			bool tryAddToRepository(std::shared_ptr<Aggregate> agg)
+			bool add(std::shared_ptr<Aggregate> agg)
 			{
 				std::shared_ptr<AGG> casted = dynamic_pointer_cast<AGG>(agg);
 				if (casted)
 				{
-					return repository.add(casted);
-				}
-				return false;
-			}
-			bool replaceInRepository(std::shared_ptr<Aggregate> agg)
-			{
-				std::shared_ptr<AGG> casted = dynamic_pointer_cast<AGG>(agg);
-				if (casted)
-				{
-					if (repository.remove(casted->getID()))
+					if (m_repository.add(casted))
 					{
-						return repository.add(casted);
+						if(m_aggregateAddedSignal)
+							m_aggregateAddedSignal({ casted->getID() });
+						return true;
 					}
 				}
 				return false;
 			}
+			bool replace(std::shared_ptr<Aggregate> agg)
+			{
+				std::shared_ptr<AGG> casted = dynamic_pointer_cast<AGG>(agg);
+				if (casted)
+				{
+					if (m_repository.remove(casted->getID()))
+					{
+						if (m_repository.add(casted))
+						{
+							if(m_aggregateReplacedSignal)
+								m_aggregateReplacedSignal({ casted->getID() });
+							return true;
+						}
+					}
+				}
+				return false;
+			}
+
+			bool remove(ID id)
+			{
+				if (m_repository.remove(id))
+				{
+					if(m_aggregateRemovedSignal)
+						m_aggregateRemovedSignal({ id });
+					return true;
+				}
+				return false;
+			}
+
+			[[nodiscard]] std::shared_ptr<AGG> get(ID id) { return m_repository.get(id); }
+			[[nodiscard]] std::shared_ptr<const AGG> get(ID id) const { return m_repository.get(id); }
+
+			[[nodiscard]] std::vector<std::shared_ptr<AGG>> getAll() { return m_repository.getAll(); }
+			[[nodiscard]] std::vector<std::shared_ptr<const AGG>> getAll() const { return m_repository.getAll(); }
+			[[nodiscard]] std::vector<ID> getIDs() const { return m_repository.getIDs(); }
+			void clear() { m_repository.clear(); }
+
+			[[nodiscard]] size_t size() const 
+			{
+				return m_repository.size();
+			}
+			[[nodiscard]] bool empty() const
+			{
+				return m_repository.empty();
+			}
+			[[nodiscard]] bool contains(ID id) const
+			{
+				return m_repository.contains(id);
+			}
+			[[nodiscard]] bool contains(const AGG& aggregate) const
+			{
+				return m_repository.contains(aggregate);
+			}
+			[[nodiscard]] bool contains(const std::shared_ptr<AGG>& aggregate) const
+			{
+				return m_repository.contains(aggregate);
+			}
+			[[nodiscard]] bool contains(const AGG* aggregate) const
+			{
+				return m_repository.contains(aggregate);
+			}
+
+			[[nodiscard]] std::vector<std::shared_ptr<AGG>> getDeleted()
+			{
+				return m_repository.getDeleted();
+			}
+			[[nodiscard]] std::vector<std::shared_ptr<const AGG>> getDeleted() const
+			{
+				return m_repository.getDeleted();
+			}
+			void clearDeletedCache()
+			{
+				m_repository.clearDeletedCache();
+			}
+
+		private:
+			Repository<AGG> m_repository;
+			std::shared_ptr<AggregateFactory<AGG>> m_factory;
+			std::vector<std::shared_ptr<AggregateService<AGG>>> m_services;
+			const std::function<void(const std::vector<ID>&)>& m_aggregateAddedSignal;
+			const std::function<void(const std::vector<ID>&)>& m_aggregateReplacedSignal;
+			const std::function<void(const std::vector<ID>&)>& m_aggregateRemovedSignal;
 		};
 
 	public:
@@ -64,6 +203,19 @@ namespace DDD
 			, m_metadata(std::make_shared<MetadataContainer>())
 		{
 
+		}
+
+		void setCallback_aggregateAdded(const std::function<void(const std::vector<ID>&)>& callback)
+		{
+			m_aggregateAddedSignal = callback;
+		}
+		void setCallback_aggregateReplaced(const std::function<void(const std::vector<ID>&)>& callback)
+		{
+			m_aggregateReplacedSignal = callback;
+		}
+		void setCallback_aggregateRemoved(const std::function<void(const std::vector<ID>&)>& callback)
+		{
+			m_aggregateRemovedSignal = callback;
 		}
 
 		template <typename FAC> std::shared_ptr<FAC> createFactory();
@@ -191,14 +343,7 @@ namespace DDD
 			for (auto& agg : m_domains)
 			{
 				std::visit([this](auto& obj) {
-					obj.repository.attachLogger(m_factoryLogger);
-					if (obj.factory)
-					{
-						if (m_factoryLogger)
-							obj.factory->setLoggerParentID(m_factoryLogger->getID());
-						else
-							obj.factory->setLoggerParentID(0);
-					}
+					obj.attachLogger(m_factoryLogger);
 					}, agg);
 			}
 		}
@@ -217,13 +362,19 @@ namespace DDD
 
 		using VariantType = std::variant<AggregateContainer<Ts>...>;
 		std::array<VariantType, aggregateTypeCount> m_domains{
-			VariantType{AggregateContainer<Ts>(m_idDomain)}...
+			VariantType{AggregateContainer<Ts>(m_idDomain, m_aggregateAddedSignal, m_aggregateReplacedSignal, m_aggregateRemovedSignal)}...
 		};
 
 		std::vector<std::shared_ptr<Service>> m_generalServices;
 		UniqueIDDomain m_idDomain;
 		std::shared_ptr<IPersistence> m_persistence;
 		std::shared_ptr<MetadataContainer> m_metadata;
+
+
+		std::function<void(const std::vector<ID>&)> m_aggregateAddedSignal;
+		std::function<void(const std::vector<ID>&)> m_aggregateReplacedSignal;
+		std::function<void(const std::vector<ID>&)> m_aggregateRemovedSignal;
+
 
 #if LOGGER_LIBRARY_AVAILABLE == 1
 		Log::LogObject* m_logger = nullptr;
@@ -238,12 +389,12 @@ namespace DDD
 	{
 		static_assert((std::is_base_of_v<AggregateFactory<typename FAC::AggregateType>, FAC>), "FAC must be derived from AggregateFactory");
 		AggregateContainer<typename FAC::AggregateType>& domain = getAggregateContainer<typename FAC::AggregateType>();
-		if (domain.factory)
+		if (domain.getFactory())
 		{
 #if LOGGER_LIBRARY_AVAILABLE == 1
-			if (m_logger) m_logger->debug("Unregistering factory for " + std::string(domain.factory->getAggregateName()));
+			if (m_logger) m_logger->debug("Unregistering factory for " + std::string(domain.getFactory()->getAggregateName()));
 #endif
-			domain.factory->unregister();
+			domain.getFactory()->unregister();
 		}
 		std::shared_ptr<FAC> factory = std::make_shared<FAC>();
 #if LOGGER_LIBRARY_AVAILABLE == 1
@@ -254,7 +405,7 @@ namespace DDD
 		}
 		factory->setLoggerParentID(m_factoryLogger ? m_factoryLogger->getID() : 0);
 #endif
-		domain.factory = factory;
+		domain.setFactory(factory);
 		return factory;
 	}
 
@@ -265,13 +416,13 @@ namespace DDD
 	{
 		static_assert((std::is_base_of_v<AggregateFactory<typename FAC::AggregateType>, FAC>), "FAC must be derived from AggregateFactory");
 		AggregateContainer<typename FAC::AggregateType>& domain = getAggregateContainer<typename FAC::AggregateType>();
-		if (domain.factory)
+		if (domain.getFactory())
 		{
 #if LOGGER_LIBRARY_AVAILABLE == 1
-			if (m_logger) m_logger->debug("Unregistering factory for " + std::string(domain.factory->getAggregateName()));
+			if (m_logger) m_logger->debug("Unregistering factory for " + std::string(domain.getFactory()->getAggregateName()));
 #endif
-			domain.factory->unregister();
-			domain.factory = nullptr;
+			domain.getFactory()->unregister();
+			domain.setFactory(nullptr);
 		}
 	}
 
@@ -287,7 +438,7 @@ namespace DDD
 			AggregateContainer<typename SER::AggregateType>& domain = getAggregateContainer<typename SER::AggregateType>();
 
 			// Check if the service already exists
-			for (auto& service : domain.services) {
+			for (auto& service : domain.getServices()) {
 				if (dynamic_cast<SER*>(service.get())) {
 #if LOGGER_LIBRARY_AVAILABLE == 1
 					if (m_logger) m_logger->error(std::string("Service: ") + typeid(SER).name() + " already exists in the model for the type: " + typeid(Model<Ts...>).name());
@@ -296,11 +447,11 @@ namespace DDD
 				}
 			}
 
-			std::shared_ptr<SER> service = std::make_shared<SER>(&domain.repository);
+			
+			std::shared_ptr<SER> service = domain.createService<SER>();
 #if LOGGER_LIBRARY_AVAILABLE == 1
 			if (m_logger) m_logger->debug("Registering service: " + std::string(service->getName()));
 #endif
-			domain.services.push_back(service);
 			return service;
 		}
 		else
@@ -333,10 +484,10 @@ namespace DDD
 		{
 			AggregateContainer<typename SER::AggregateType>& domain = getAggregateContainer<typename SER::AggregateType>();
 
-			for (size_t i = 0; i < domain.services.size(); ++i) {
-				if (dynamic_cast<SER*>(domain.services[i].get())) {
-					domain.services[i]->unregister();
-					domain.services.erase(domain.services.begin() + i);
+			const auto& services = domain.getServices();
+			for (size_t i = 0; i < services.size(); ++i) {
+				if (dynamic_cast<SER*>(services[i].get())) {
+					domain.removeService(i);
 					return;
 				}
 			}
@@ -364,10 +515,7 @@ namespace DDD
 		static_assert((std::is_same_v<AGG, Ts> || ...), "Aggregate type <AGG> not found in this model");
 
 		AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
-		for (size_t i = 0; i < domain.services.size(); ++i) {
-			domain.services[i]->unregister();
-		}
-		domain.services.clear();
+		domain.clearServices();
 
 #if LOGGER_LIBRARY_AVAILABLE == 1
 		if (m_logger) m_logger->debug("Service to remove not found");
@@ -394,7 +542,8 @@ namespace DDD
 		if constexpr ((std::is_same_v<typename SER::AggregateType, Ts> || ...))
 		{
 			AggregateContainer<typename SER::AggregateType>& domain = getAggregateContainer<typename SER::AggregateType>();
-			for (auto& service : domain.services) {
+			const auto& services = domain.getServices();
+			for (auto& service : services) {
 				if (auto* ptr = dynamic_cast<SER*>(service.get())) {
 #if LOGGER_LIBRARY_AVAILABLE == 1
 					if (m_logger) m_logger->debug("Executing service: " + std::string(ptr->getName()));
@@ -429,7 +578,7 @@ namespace DDD
 	{
 		static_assert((std::is_same_v<AGG, Ts> || ...), "Aggregate type <AGG> not found in this model");
 		const AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
-		return domain.repository.size();
+		return domain.size();
 	}
 
 	template <DerivedFromAggregate... Ts>
@@ -438,7 +587,7 @@ namespace DDD
 	{
 		static_assert((std::is_same_v<AGG, Ts> || ...), "Aggregate type <AGG> not found in this model");
 		const AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
-		return domain.repository.empty();
+		return domain.empty();
 	}
 
 	template <DerivedFromAggregate... Ts>
@@ -447,7 +596,7 @@ namespace DDD
 	{
 		static_assert((std::is_same_v<AGG, Ts> || ...), "Aggregate type <AGG> not found in this model");
 		const AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
-		return domain.repository.contains(id);
+		return domain.contains(id);
 	}
 
 	template <DerivedFromAggregate... Ts>
@@ -456,7 +605,7 @@ namespace DDD
 		for (auto& agg : m_domains)
 		{
 			bool found = std::visit([id](auto& obj) {
-				return obj.repository.contains(id);
+				return obj.contains(id);
 				}, agg);
 			if (found)
 				return true;
@@ -470,7 +619,7 @@ namespace DDD
 	{
 		static_assert((std::is_same_v<AGG, Ts> || ...), "Aggregate type <AGG> not found in this model");
 		const AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
-		return domain.repository.contains(aggregate.getID());
+		return domain.contains(aggregate.getID());
 	}
 
 	template <DerivedFromAggregate... Ts>
@@ -479,7 +628,7 @@ namespace DDD
 	{
 		static_assert((std::is_same_v<AGG, Ts> || ...), "Aggregate type <AGG> not found in this model");
 		const AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
-		return domain.repository.contains(aggregate->getID());
+		return domain.contains(aggregate->getID());
 	}
 
 	template <DerivedFromAggregate... Ts>
@@ -488,7 +637,7 @@ namespace DDD
 	{
 		static_assert((std::is_same_v<AGG, Ts> || ...), "Aggregate type <AGG> not found in this model");
 		const AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
-		return domain.repository.contains(aggregate->getID());
+		return domain.contains(aggregate->getID());
 	}
 
 	template <DerivedFromAggregate... Ts>
@@ -497,7 +646,7 @@ namespace DDD
 	{
 		static_assert((std::is_same_v<AGG, Ts> || ...), "Aggregate type <AGG> not found in this model");
 		AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
-		return domain.repository.get(id);
+		return domain.get(id);
 	}
 	template <DerivedFromAggregate... Ts>
 	template <DerivedFromAggregate AGG>
@@ -505,7 +654,7 @@ namespace DDD
 	{
 		static_assert((std::is_same_v<AGG, Ts> || ...), "Aggregate type <AGG> not found in this model");
 		const AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
-		return domain.repository.get(id);
+		return domain.get(id);
 	}
 
 	template <DerivedFromAggregate... Ts>
@@ -515,9 +664,9 @@ namespace DDD
 		for (auto& agg : m_domains)
 		{
 			std::visit([&objPtr, id](auto& obj) {
-				if (!obj.repository.contains(id))
+				if (!obj.contains(id))
 					return;
-				objPtr = obj.repository.get(id);
+				objPtr = obj.get(id);
 				}, agg);
 			if (objPtr)
 				return objPtr;
@@ -531,9 +680,9 @@ namespace DDD
 		for (auto& agg : m_domains)
 		{
 			std::visit([&objPtr, id](auto& obj) {
-				if (!obj.repository.contains(id))
+				if (!obj.contains(id))
 					return;
-				objPtr = obj.repository.get(id);
+				objPtr = obj.get(id);
 				}, agg);
 			if (objPtr)
 				return objPtr;
@@ -547,7 +696,7 @@ namespace DDD
 		for (auto& agg : m_domains)
 		{
 			bool found = std::visit([id](auto& obj) {
-				return obj.repository.remove(id);
+				return obj.remove(id);
 				}, agg);
 			if (found)
 				return true;
@@ -561,7 +710,7 @@ namespace DDD
 	{
 		static_assert((std::is_same_v<AGG, Ts> || ...), "Aggregate type <AGG> not found in this model");
 		AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
-		domain.repository.clear();
+		domain.clear();
 	}
 
 	template <DerivedFromAggregate... Ts>
@@ -570,7 +719,7 @@ namespace DDD
 		for (auto& agg : m_domains)
 		{
 			std::visit([](auto& obj) {
-				obj.repository.clear();
+				obj.clear();
 				}, agg);
 		}
 		m_idDomain.reset();
@@ -595,9 +744,9 @@ namespace DDD
 		objs.reserve(idList.size());
 		for (const ID& id : idList)
 		{
-			if (!domain.repository.contains(id))
+			if (!domain.contains(id))
 				continue;
-			std::shared_ptr<AGG> obj = domain.repository.get(id);
+			std::shared_ptr<AGG> obj = domain.get(id);
 			if (obj)
 				objs.push_back(obj);
 		}
@@ -614,9 +763,9 @@ namespace DDD
 		objs.reserve(idList.size());
 		for (const ID& id : idList)
 		{
-			if (!domain.repository.contains(id))
+			if (!domain.contains(id))
 				continue;
-			std::shared_ptr<const AGG> obj = domain.repository.get(id);
+			std::shared_ptr<const AGG> obj = domain.get(id);
 			if (obj)
 				objs.push_back(obj);
 		}
@@ -632,9 +781,9 @@ namespace DDD
 			std::visit([&objs, &idList](auto& obj) {
 				for (const ID& id : idList)
 				{
-					if (!obj.repository.contains(id))
+					if (!obj.contains(id))
 						continue;
-					std::shared_ptr<Aggregate> ins = obj.repository.get(id);
+					std::shared_ptr<Aggregate> ins = obj.get(id);
 					if (ins)
 						objs.push_back(ins);
 				}
@@ -652,9 +801,9 @@ namespace DDD
 			std::visit([&objs, &idList](auto& obj) {
 				for (const ID& id : idList)
 				{
-					if (!obj.repository.contains(id))
+					if (!obj.contains(id))
 						continue;
-					std::shared_ptr<const Aggregate> ins = obj.repository.get(id);
+					std::shared_ptr<const Aggregate> ins = obj.get(id);
 					if (ins)
 						objs.push_back(ins);
 				}
@@ -668,7 +817,7 @@ namespace DDD
 	[[nodiscard]] std::vector<std::shared_ptr<AGG>> Model<Ts...>::getAggregates()
 	{
 		AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
-		return domain.repository.getAll();
+		return domain.getAll();
 	}
 
 	template <DerivedFromAggregate... Ts>
@@ -678,7 +827,7 @@ namespace DDD
 		for (auto& agg : m_domains)
 		{
 			std::visit([&objs](auto& obj) {
-				for (auto& ins : obj.repository.getAll())
+				for (auto& ins : obj.getAll())
 					objs.push_back(ins);
 				}, agg);
 		}
@@ -692,7 +841,7 @@ namespace DDD
 		for (auto& agg : m_domains)
 		{
 			std::visit([&objs](auto& obj) {
-				for (auto& ins : obj.repository.getAll())
+				for (auto& ins : obj.getAll())
 					objs.push_back(ins);
 				}, agg);
 		}
@@ -704,8 +853,8 @@ namespace DDD
 	{
 		const AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
 		std::vector<std::shared_ptr<const AGG>> objs;
-		objs.reserve(domain.repository.size());
-		for (const auto& it : domain.repository.getALL())
+		objs.reserve(domain.size());
+		for (const auto& it : domain.getALL())
 		{
 			objs.push_back(it);
 		}
@@ -719,7 +868,7 @@ namespace DDD
 		for (auto& agg : m_domains)
 		{
 			std::visit([&objs](auto& obj) {
-				auto deleted = obj.repository.getDeleted();
+				auto deleted = obj.getDeleted();
 				for (auto& ins : deleted)
 				{
 					objs.push_back(ins);
@@ -734,7 +883,7 @@ namespace DDD
 	[[nodiscard]] std::vector<std::shared_ptr<AGG>> Model<Ts...>::getDeletedAggregates()
 	{
 		AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
-		return domain.repository.getDeleted();
+		return domain.getDeleted();
 	}
 
 	template <DerivedFromAggregate... Ts>
@@ -744,7 +893,7 @@ namespace DDD
 		for (auto& agg : m_domains)
 		{
 			std::visit([&objs](auto& obj) {
-				auto deleted = obj.repository.getDeleted();
+				auto deleted = obj.getDeleted();
 				for (auto& ins : deleted)
 				{
 					objs.push_back(ins);
@@ -759,7 +908,7 @@ namespace DDD
 	[[nodiscard]] std::vector<std::shared_ptr<const AGG>> Model<Ts...>::getDeletedAggregates() const
 	{
 		AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
-		return domain.repository.getDeleted();
+		return domain.getDeleted();
 	}
 
 	template <DerivedFromAggregate... Ts>
@@ -768,7 +917,7 @@ namespace DDD
 		for (auto& agg : m_domains)
 		{
 			std::visit([](auto& obj) {
-				obj.repository.clearDeletedCache();
+				obj.clearDeletedCache();
 				}, agg);
 		}
 	}
@@ -778,7 +927,7 @@ namespace DDD
 	void Model<Ts...>::clearDeletedAggregates()
 	{
 		AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
-		domain.repository.clearDeletedCache();
+		domain.clearDeletedCache();
 	}
 
 
@@ -789,7 +938,7 @@ namespace DDD
 	{
 		std::vector<ID> ids;
 		const AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
-		std::vector<ID> subIds = domain.repository.getIDs();
+		std::vector<ID> subIds = domain.getIDs();
 		ids.insert(ids.end(), subIds.begin(), subIds.end());
 		return ids;
 	}
@@ -801,7 +950,7 @@ namespace DDD
 		for (auto& agg : m_domains)
 		{
 			std::visit([&ids](auto& obj) {
-				std::vector<ID> subIds = obj.repository.getIDs();
+				std::vector<ID> subIds = obj.getIDs();
 				ids.insert(ids.end(), subIds.begin(), subIds.end());
 				}, agg);
 		}
@@ -817,7 +966,7 @@ namespace DDD
 		const AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
 		for (const ID& id : toFilter)
 		{
-			if (domain.repository.contains(id))
+			if (domain.contains(id))
 			{
 				filteredIDs.push_back(id);
 			}
@@ -862,7 +1011,7 @@ namespace DDD
 		{
 			std::visit([&aggregate, &result](auto& obj) {
 				if (obj.isAggregateTypeForThis(aggregate))
-					result = obj.tryAddToRepository(aggregate);
+					result = obj.add(aggregate);
 				}, agg);
 		}
 		return result;
@@ -875,7 +1024,7 @@ namespace DDD
 		{
 			std::visit([&aggregate, &result](auto& obj) {
 				if (obj.isAggregateTypeForThis(aggregate))
-					result = obj.replaceInRepository(aggregate);
+					result = obj.replace(aggregate);
 				}, agg);
 		}
 		return result;
@@ -901,7 +1050,7 @@ namespace DDD
 		}
 		if(newIDsCount > 0)
 		{
-			std::vector<std::shared_ptr<Aggregate>> newIDAggregates;
+			std::vector<std::shared_ptr<IID>> newIDAggregates;
 			newIDAggregates.reserve(newIDsCount);
 			for (auto& aggregate : aggregates)
 			{
@@ -926,7 +1075,7 @@ namespace DDD
 					if(aggregate == nullptr)
 						continue;
 					if (obj.isAggregateTypeForThis(aggregate))
-						results[i] = obj.tryAddToRepository(aggregate);
+						results[i] = obj.add(aggregate);
 				}
 				}, agg);
 		}
@@ -944,7 +1093,7 @@ namespace DDD
 				{
 					auto aggregate = aggregates[i];
 					if (obj.isAggregateTypeForThis(aggregate))
-						results[i] = obj.replaceInRepository(aggregate);
+						results[i] = obj.replace(aggregate);
 				}
 				}, agg);
 		}
