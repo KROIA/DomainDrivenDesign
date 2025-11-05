@@ -26,7 +26,8 @@ namespace DDD
 
 			AggregateContainer(UniqueIDDomain& domain)
 				: repository(domain)
-			{}
+			{
+			}
 			bool isAggregateTypeForThis(std::shared_ptr<Aggregate> agg)
 			{
 				return dynamic_pointer_cast<AGG>(agg) != nullptr;
@@ -58,8 +59,8 @@ namespace DDD
 		static constexpr size_t aggregateTypeCount = sizeof...(Ts);
 
 		// Default constructor initializes each instance
-		Model() 
-			: m_idDomain(std::bind(&Model::tryReserveNextID, this, std::placeholders::_1))
+		Model()
+			: m_idDomain(std::bind(&Model::tryReserveNextID, this, std::placeholders::_1, std::placeholders::_2))
 			, m_metadata(std::make_shared<MetadataContainer>())
 		{
 
@@ -74,7 +75,7 @@ namespace DDD
 		void removeAllGeneralServices();
 
 		template <DerivedFromService SER> std::shared_ptr<ServiceExecutionResult> executeService();
-		
+
 
 
 
@@ -84,7 +85,7 @@ namespace DDD
 		[[nodiscard]] bool contains(ID id) const;
 		template <DerivedFromAggregate AGG> [[nodiscard]] bool contains(const AGG& aggregate) const;
 		template <DerivedFromAggregate AGG> [[nodiscard]] bool contains(const std::shared_ptr<typename AGG>& aggregate) const;
-		template <DerivedFromAggregate AGG>	[[nodiscard]] bool contains(const AGG* aggregate) const;
+		template <DerivedFromAggregate AGG> [[nodiscard]] bool contains(const AGG* aggregate) const;
 
 		template <DerivedFromAggregate AGG> [[nodiscard]] std::shared_ptr<AGG> getAggregate(const ID id);
 		template <DerivedFromAggregate AGG> [[nodiscard]] std::shared_ptr<const AGG> getAggregate(const ID id) const;
@@ -112,7 +113,7 @@ namespace DDD
 
 		bool addAggregate(std::shared_ptr<Aggregate> aggregate);
 		bool replaceAggregate(std::shared_ptr<Aggregate> aggregate);
-		std::vector<bool> addAggregate(const std::vector<std::shared_ptr<Aggregate>>& aggregates);
+		std::vector<bool> addAggregate(std::vector<std::shared_ptr<Aggregate>> aggregates);
 		std::vector<bool> replaceAggregate(const std::vector<std::shared_ptr<Aggregate>>& aggregates);
 
 		template <DerivedFromAggregate AGG> [[nodiscard]] std::vector<ID> getIDs() const;
@@ -163,7 +164,7 @@ namespace DDD
 		bool logOnUser(std::shared_ptr<User> user);
 		bool logOffUser(std::shared_ptr<User> user);
 		std::vector<std::shared_ptr<User>> getLoggedOnUsers() const;
-		
+
 
 		void setMetadataContainer(std::shared_ptr<MetadataContainer> metadata)
 		{
@@ -204,16 +205,16 @@ namespace DDD
 #endif
 
 	protected:
-		bool tryReserveNextID(ID id);
+		bool tryReserveNextID(ID id, ID amount);
 
 	private:
 		// Retrieve an instance of a specific type X
 		template <typename AGG> [[nodiscard]] AggregateContainer<AGG>& getAggregateContainer();
 		template <typename AGG> [[nodiscard]] const AggregateContainer<AGG>& getAggregateContainer() const;
 
-		
 
-		
+
+
 		using VariantType = std::variant<AggregateContainer<Ts>...>;
 		std::array<VariantType, aggregateTypeCount> m_domains{
 			VariantType{AggregateContainer<Ts>(m_idDomain)}...
@@ -240,7 +241,7 @@ namespace DDD
 		if (domain.factory)
 		{
 #if LOGGER_LIBRARY_AVAILABLE == 1
-			if (m_logger) m_logger->debug("Unregistering factory for "+ std::string(domain.factory->getAggregateName()));
+			if (m_logger) m_logger->debug("Unregistering factory for " + std::string(domain.factory->getAggregateName()));
 #endif
 			domain.factory->unregister();
 		}
@@ -297,7 +298,7 @@ namespace DDD
 
 			std::shared_ptr<SER> service = std::make_shared<SER>(&domain.repository);
 #if LOGGER_LIBRARY_AVAILABLE == 1
-			if (m_logger) m_logger->debug("Registering service: "+std::string(service->getName()));
+			if (m_logger) m_logger->debug("Registering service: " + std::string(service->getName()));
 #endif
 			domain.services.push_back(service);
 			return service;
@@ -342,7 +343,7 @@ namespace DDD
 		}
 		else
 		{
-			for (size_t i=0; i< m_generalServices.size(); ++i)
+			for (size_t i = 0; i < m_generalServices.size(); ++i)
 			{
 				if (dynamic_cast<SER*>(m_generalServices[i].get())) {
 					m_generalServices[i]->unregister();
@@ -367,7 +368,7 @@ namespace DDD
 			domain.services[i]->unregister();
 		}
 		domain.services.clear();
-		
+
 #if LOGGER_LIBRARY_AVAILABLE == 1
 		if (m_logger) m_logger->debug("Service to remove not found");
 #endif
@@ -415,7 +416,7 @@ namespace DDD
 			}
 		}
 #if LOGGER_LIBRARY_AVAILABLE == 1
-		if (m_logger) m_logger->error("Service: "+std::string(typeid(SER).name())+" not found for execution.\nService must be created first!");
+		if (m_logger) m_logger->error("Service: " + std::string(typeid(SER).name()) + " not found for execution.\nService must be created first!");
 #endif
 		return nullptr;
 	}
@@ -524,7 +525,7 @@ namespace DDD
 		return nullptr;
 	}
 	template <DerivedFromAggregate... Ts>
-	[[nodiscard]] std::shared_ptr<const Aggregate> Model<Ts...>::getAggregate(const ID id) const 
+	[[nodiscard]] std::shared_ptr<const Aggregate> Model<Ts...>::getAggregate(const ID id) const
 	{
 		std::shared_ptr<const Aggregate> objPtr = nullptr;
 		for (auto& agg : m_domains)
@@ -623,7 +624,7 @@ namespace DDD
 	}
 
 	template <DerivedFromAggregate... Ts>
-	[[nodiscard]] std::vector<std::shared_ptr<Aggregate>> Model<Ts...>::getAggregates(const std::vector<ID>& idList) 
+	[[nodiscard]] std::vector<std::shared_ptr<Aggregate>> Model<Ts...>::getAggregates(const std::vector<ID>& idList)
 	{
 		std::vector<std::shared_ptr<Aggregate>> objs;
 		for (auto& agg : m_domains)
@@ -631,7 +632,7 @@ namespace DDD
 			std::visit([&objs, &idList](auto& obj) {
 				for (const ID& id : idList)
 				{
-					if(!obj.repository.contains(id))
+					if (!obj.repository.contains(id))
 						continue;
 					std::shared_ptr<Aggregate> ins = obj.repository.get(id);
 					if (ins)
@@ -729,7 +730,7 @@ namespace DDD
 	}
 
 	template <DerivedFromAggregate... Ts>
-	template <DerivedFromAggregate AGG> 
+	template <DerivedFromAggregate AGG>
 	[[nodiscard]] std::vector<std::shared_ptr<AGG>> Model<Ts...>::getDeletedAggregates()
 	{
 		AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
@@ -754,7 +755,7 @@ namespace DDD
 	}
 
 	template <DerivedFromAggregate... Ts>
-	template <DerivedFromAggregate AGG> 
+	template <DerivedFromAggregate AGG>
 	[[nodiscard]] std::vector<std::shared_ptr<const AGG>> Model<Ts...>::getDeletedAggregates() const
 	{
 		AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
@@ -773,7 +774,7 @@ namespace DDD
 	}
 
 	template <DerivedFromAggregate... Ts>
-	template <DerivedFromAggregate AGG> 
+	template <DerivedFromAggregate AGG>
 	void Model<Ts...>::clearDeletedAggregates()
 	{
 		AggregateContainer<AGG>& domain = getAggregateContainer<AGG>();
@@ -808,7 +809,7 @@ namespace DDD
 	}
 
 	template <DerivedFromAggregate... Ts>
-	template <DerivedFromAggregate AGG> 
+	template <DerivedFromAggregate AGG>
 	[[nodiscard]] std::vector<ID> Model<Ts...>::filterIDs(const std::vector<ID>& toFilter) const
 	{
 		std::vector<ID> filteredIDs;
@@ -822,7 +823,7 @@ namespace DDD
 			}
 		}
 		return filteredIDs;
- 	}
+	}
 
 
 	template <DerivedFromAggregate... Ts>
@@ -847,11 +848,20 @@ namespace DDD
 	template <DerivedFromAggregate... Ts>
 	bool Model<Ts...>::addAggregate(std::shared_ptr<Aggregate> aggregate)
 	{
+		ID id = aggregate->getID();
+		if (id == INVALID_ID)
+		{
+			m_idDomain.setUniqueIDFor(aggregate);
+		}
+		else if(contains(id))
+			return false;
+
+
 		bool result = false;
 		for (auto& agg : m_domains)
 		{
 			std::visit([&aggregate, &result](auto& obj) {
-				if(obj.isAggregateTypeForThis(aggregate))
+				if (obj.isAggregateTypeForThis(aggregate))
 					result = obj.tryAddToRepository(aggregate);
 				}, agg);
 		}
@@ -873,15 +883,48 @@ namespace DDD
 
 
 	template <DerivedFromAggregate... Ts>
-	std::vector<bool> Model<Ts...>::addAggregate(const std::vector<std::shared_ptr<Aggregate>>& aggregates)
+	std::vector<bool> Model<Ts...>::addAggregate(std::vector<std::shared_ptr<Aggregate>> aggregates)
 	{
+		// Check if object with same ID already exists
+		size_t newIDsCount = 0;
+		for (auto& aggregate : aggregates)
+		{
+			ID id = aggregate->getID();
+			if (id == INVALID_ID)
+			{
+				++newIDsCount;
+			}
+			else if (contains(id))
+			{
+				aggregate = nullptr;
+			}
+		}
+		if(newIDsCount > 0)
+		{
+			std::vector<std::shared_ptr<Aggregate>> newIDAggregates;
+			newIDAggregates.reserve(newIDsCount);
+			for (auto& aggregate : aggregates)
+			{
+				if (!aggregate)
+					continue;
+				ID id = aggregate->getID();
+				if (id == INVALID_ID)
+				{
+					newIDAggregates.push_back(aggregate);
+				}
+			}
+			m_idDomain.setUniqueIDFor(newIDAggregates);
+		}
+
 		std::vector<bool> results(aggregates.size(), false);
 		for (auto& agg : m_domains)
 		{
 			std::visit([&aggregates, &results](auto& obj) {
-				for (size_t i=0; i<aggregates.size(); ++i)
+				for (size_t i = 0; i < aggregates.size(); ++i)
 				{
 					auto aggregate = aggregates[i];
+					if(aggregate == nullptr)
+						continue;
 					if (obj.isAggregateTypeForThis(aggregate))
 						results[i] = obj.tryAddToRepository(aggregate);
 				}
@@ -967,7 +1010,7 @@ namespace DDD
 		else
 		{
 			return m_persistence->load();
-		}		
+		}
 	}
 	template <DerivedFromAggregate... Ts>
 	bool Model<Ts...>::load(const std::vector<ID>& ids)
@@ -1191,7 +1234,7 @@ namespace DDD
 	//
 
 	template <DerivedFromAggregate... Ts>
-	bool Model<Ts...>::tryReserveNextID(ID id)
+	bool Model<Ts...>::tryReserveNextID(ID id, ID amount)
 	{
 		if (!m_metadata || !m_persistence)
 			return true;
@@ -1201,16 +1244,16 @@ namespace DDD
 			if (m_persistence->load(m_metadata))
 			{
 				ID highestID = m_metadata->getCurrentHighestID();
-				if (id > highestID)
+				if (id > highestID && (id + amount) > highestID)
 				{
-					m_metadata->setCurrentHighestID(id);
+					m_metadata->setCurrentHighestID(id + amount);
 					success = m_persistence->save(m_metadata);
 				}
 			}
 			else
 			{
 				// Try to save new metadata anyway
-				m_metadata->setCurrentHighestID(id);
+				m_metadata->setCurrentHighestID(id + amount);
 				success = m_persistence->save(m_metadata);
 			}
 			success &= manualUnlockDatabase();

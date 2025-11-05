@@ -8,7 +8,8 @@ namespace DDD
 	class UniqueIDDomain
 	{
 	public:
-		UniqueIDDomain(const std::function<bool(ID)> &reserveFunc)
+		// reserveFunc: Function that takes the base ID and the amount of IDs to reserve, and returns true if the IDs were successfully reserved
+		UniqueIDDomain(const std::function<bool(ID, ID)> &reserveFunc)
 			: m_tryReserveNewID(reserveFunc)
 		{
 
@@ -35,11 +36,26 @@ namespace DDD
 
 		[[nodiscard]] ID getNextID()
 		{
-			ID nextID = m_currentID++;
+			ID nextID = ++m_currentID;
 			size_t timeoutCounter = 0;
-			while (!m_tryReserveNewID(nextID))
+			while (!m_tryReserveNewID(nextID, 1))
 			{
-				nextID = m_currentID++;
+				++nextID;
+				if (timeoutCounter++ > 100)
+				{
+					m_currentID = nextID;
+					return nextID; // give up after 100 tries and hope that the new id will not collide
+				}
+			}
+			return nextID;
+		}
+		[[nodiscard]] ID getNextID(ID amount)
+		{
+			ID nextID = ++m_currentID;
+			size_t timeoutCounter = 0;
+			while (!m_tryReserveNewID(nextID, amount))
+			{
+				++nextID;
 				if (timeoutCounter++ > 100)
 				{
 					return nextID; // give up after 100 tries and hope that the new id will not collide
@@ -68,6 +84,18 @@ namespace DDD
 		{
 			obj->m_id = getNextID();
 		}
+		void setUniqueIDFor(const std::vector<std::shared_ptr<IID>>& objs)
+		{
+			ID nextID = getNextID(objs.size());
+			ID currentID = nextID;
+			for (auto& obj : objs)
+			{
+				if (!obj)
+					continue;
+				obj->m_id = currentID;
+				++currentID;
+			}
+		}
 		bool tryAssignCustomID(std::shared_ptr<IID> obj, ID id)
 		{
 			if (id > m_currentID)
@@ -88,6 +116,6 @@ namespace DDD
 		}
 	private:
 		ID m_currentID = 0;
-		std::function<bool(ID) > m_tryReserveNewID;
+		std::function<bool(ID, ID) > m_tryReserveNewID;
 	};
 }
