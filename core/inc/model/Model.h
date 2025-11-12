@@ -297,10 +297,10 @@ namespace DDD
 
 		bool save() const;
 		bool save(const std::vector<ID>& ids) const;
-		bool saveMetadata() const;
+		bool saveMetadata(std::shared_ptr<MetadataContainer::MetaContext> context = nullptr) const;
 		bool load();
 		bool load(const std::vector<ID>& ids);
-		bool loadMetadata();
+		bool loadMetadata(std::shared_ptr<MetadataContainer::MetaContext> context = nullptr);
 
 		bool manualLockDatabase();
 		bool manualUnlockDatabase();
@@ -1133,14 +1133,14 @@ namespace DDD
 	}
 
 	template <DerivedFromAggregate... Ts>
-	bool Model<Ts...>::saveMetadata() const
+	bool Model<Ts...>::saveMetadata(std::shared_ptr<MetadataContainer::MetaContext> context) const
 	{
 		if (!m_metadata)
 			return false;
-		m_metadata->onSaveBegin();
+		m_metadata->onSaveBegin(context);
 		if (m_persistence->save(m_metadata))
 		{
-			m_metadata->onSaveEnd();
+			m_metadata->onSaveEnd(context);
 			return true;
 		}
 		return false;
@@ -1178,14 +1178,14 @@ namespace DDD
 	}
 
 	template <DerivedFromAggregate... Ts>
-	bool Model<Ts...>::loadMetadata()
+	bool Model<Ts...>::loadMetadata(std::shared_ptr<MetadataContainer::MetaContext> context)
 	{
 		if (!m_metadata)
 			return false;
-		m_metadata->onLoadBegin();
+		m_metadata->onLoadBegin(context);
 		if (m_persistence->load(m_metadata))
 		{
-			m_metadata->onLoadEnd();
+			m_metadata->onLoadEnd(context);
 			return true;
 		}
 		return false;
