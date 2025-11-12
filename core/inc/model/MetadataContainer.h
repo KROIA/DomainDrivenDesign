@@ -21,6 +21,18 @@ namespace DDD
 			virtual ~MetaContext() = default;
 		};
 
+		/**
+		* @brief When the MetadataContainer is loaded because of a read/write of a new aggregate ID, this context is provided.
+		*/
+		class NewAggregateIDContext : public MetaContext
+		{
+		public:
+			NewAggregateIDContext() = default;
+			NewAggregateIDContext(const NewAggregateIDContext& other) = default;
+			NewAggregateIDContext(NewAggregateIDContext&& other) noexcept = default;
+			virtual ~NewAggregateIDContext() = default;
+		};
+
 		MetadataContainer() = default;
 		MetadataContainer(const MetadataContainer& other) 
 			: m_currentHighestID(other.m_currentHighestID)

@@ -1390,20 +1390,24 @@ namespace DDD
 		if (manualLockDatabase())
 		{
 			bool success = false;
-			if (m_persistence->load(m_metadata))
+			std::shared_ptr<MetadataContainer::NewAggregateIDContext> context = std::make_shared<MetadataContainer::NewAggregateIDContext>();
+			if(loadMetadata(context))
+		//	if (m_persistence->load(m_metadata))
 			{
 				ID highestID = m_metadata->getCurrentHighestID();
 				if (id > highestID && (id + amount) > highestID)
 				{
 					m_metadata->setCurrentHighestID(id + amount);
-					success = m_persistence->save(m_metadata);
+					success = saveMetadata(context);
+					//success = m_persistence->save(m_metadata);
 				}
 			}
 			else
 			{
 				// Try to save new metadata anyway
 				m_metadata->setCurrentHighestID(id + amount);
-				success = m_persistence->save(m_metadata);
+				success = saveMetadata(context);
+				//success = m_persistence->save(m_metadata);
 			}
 			success &= manualUnlockDatabase();
 			return success;
