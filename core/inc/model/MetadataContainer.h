@@ -46,20 +46,20 @@ namespace DDD
 
 		virtual void onLoadBegin(std::shared_ptr<MetaContext> context)
 		{
-
+			DDD_UNUSED(context);
 		}
 		virtual void onLoadEnd(std::shared_ptr<MetaContext> context)
 		{
-
+			DDD_UNUSED(context);
 		}
 
 		virtual void onSaveBegin(std::shared_ptr<MetaContext> context)
 		{
-
+			DDD_UNUSED(context);
 		}
 		virtual void onSaveEnd(std::shared_ptr<MetaContext> context)
 		{
-
+			DDD_UNUSED(context);
 		}
 
 	private:
