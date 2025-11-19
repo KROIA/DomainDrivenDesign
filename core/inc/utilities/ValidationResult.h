@@ -268,7 +268,28 @@ namespace DDD
 				bool isLast = (currentItem == totalItems);
 
 				QString branch = QString::fromUtf16(isLast ? u" └ " : u" ├ ");
-				lines.push_back(prefix + branch + QString::fromStdString(text));
+				QString continuation = QString::fromUtf16(isLast ? u"  " : u" │ ");
+
+				// Split text by newlines
+				QString allLine = QString::fromStdString(text);
+				std::vector<QString> textLines = splitByNewline(allLine);
+
+				for (size_t i = 0; i < textLines.size(); i++)
+				{
+					if (i == 0)
+					{
+						// First line uses the branch character
+						lines.push_back(prefix + branch + textLines[i]);
+					}
+					else
+					{
+						// Continuation lines are indented with continuation character
+						lines.push_back(prefix + continuation + textLines[i]);
+					}
+				}
+
+				//QString branch = QString::fromUtf16(isLast ? u" └ " : u" ├ ");
+				//lines.push_back(prefix + branch + QString::fromStdString(text));
 			}
 
 			// Add all children recursively
@@ -297,6 +318,40 @@ namespace DDD
 					}
 				}
 			}
+		}
+
+		// Helper function to split string by newline
+		std::vector<QString> splitByNewline(const QString& str) const
+		{
+			std::vector<QString> result;
+			QString current;
+
+			for (const auto c : str)
+			{
+				if (c == '\n')
+				{
+					result.push_back(current);
+					current.clear();
+				}
+				else if (c != '\r') // Skip carriage return
+				{
+					current += c;
+				}
+			}
+
+			// Add the last line
+			if (!current.isEmpty() || !result.empty())
+			{
+				result.push_back(current);
+			}
+
+			// If string was empty, return at least one empty string
+			if (result.empty())
+			{
+				result.push_back("");
+			}
+
+			return result;
 		}
 
 		std::string m_title;
