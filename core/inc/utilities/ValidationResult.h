@@ -268,7 +268,7 @@ namespace DDD
 				bool isLast = (currentItem == totalItems);
 
 				QString branch = QString::fromUtf16(isLast ? u" └ " : u" ├ ");
-				QString continuation = QString::fromUtf16(isLast ? u"  " : u" │ ");
+				QString continuation = QString::fromUtf16(isLast ? u"   " : u" │ ");
 
 				// Split text by newlines
 				QString allLine = QString::fromStdString(text);
