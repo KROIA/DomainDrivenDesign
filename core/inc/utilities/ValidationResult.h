@@ -139,27 +139,39 @@ namespace DDD
 		{
 			return m_subResults;
 		}
-		void addSubResult(const ValidationResult& subResult)
+		Status addSubResult(const ValidationResult& subResult)
 		{
 			if(!subResult.isValid())
 			{
 				m_status = Status::Invalid;
 			}
 			m_subResults.push_back(subResult);
+			return m_status;
 		}
-		void addSubResult(const std::vector<ValidationResult>& subResults)
+		Status addSubResult(const std::vector<ValidationResult>& subResults)
 		{
 			for (const auto& subResult : subResults)
 			{
 				addSubResult(subResult);
 			}
+			return m_status;
 		}
-		void removeSubResult(size_t index)
+		Status removeSubResult(size_t index)
 		{
 			if (index < m_subResults.size())
 			{
 				m_subResults.erase(m_subResults.begin() + index);
 			}
+			m_status = Status::Valid;
+			for(size_t i = 0; i < m_subResults.size(); ++i)
+			{
+				if (m_subResults[i].isInvalid())
+				{
+					m_status = Status::Invalid;
+					return m_status;
+				}
+			}
+			return m_status;
 		}
 
 		QJsonObject toJson() const override
