@@ -139,6 +139,22 @@ namespace DDD
 		{
 			return m_subResults;
 		}
+		const ValidationResult& getSubResult(size_t index) const
+		{
+			return m_subResults.at(index);
+		}
+		const ValidationResult& operator[](size_t index) const
+		{
+			return m_subResults.at(index);
+		}
+		const ValidationResult& front() const
+		{
+			return m_subResults.front();
+		}
+		const ValidationResult& back() const
+		{
+			return m_subResults.back();
+		}
 		Status addSubResult(const ValidationResult& subResult)
 		{
 			if(!subResult.isValid())
