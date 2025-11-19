@@ -267,7 +267,7 @@ namespace DDD
 				currentItem++;
 				bool isLast = (currentItem == totalItems);
 
-				QString branch = isLast ? " └ " : " ├ ";
+				QString branch = QString::fromUtf16(isLast ? u" └ " : u" ├ ");
 				lines.push_back(prefix + branch + QString::fromStdString(text));
 			}
 
@@ -277,11 +277,11 @@ namespace DDD
 				currentItem++;
 				bool isLast = (currentItem == totalItems);
 
-				QString branch = isLast ? " └ " : " ├ ";
+				QString branch = QString::fromUtf16(isLast ? u" └ " : u" ├ ");
 				lines.push_back(prefix + branch + QString::fromStdString(m_subResults[i].m_title + " : " + (m_subResults[i].isValid() ? "Valid" : "Invalid")));
 
 				// Build continuation prefix for child's content
-				QString childPrefix = prefix + (isLast ? "  " : " │");
+				QString childPrefix = prefix + QString::fromUtf16(isLast ? u"  " : u" │");
 
 				// Recursively process child with modified prefix handling
 				QList<QString> childLines;
