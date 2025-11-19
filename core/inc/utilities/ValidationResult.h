@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "DDD_base.h"
 #include <vector>
+#include <QList>
 #include "model/Aggregate.h"
 #include "IJsonSerializable.h"
 
@@ -229,28 +230,22 @@ namespace DDD
 		{
 			return jsonToString(toJson());
 		}
-		std::string getTreeViewString() const
+		QString getTreeViewString() const
 		{
 			int tabs = 0;
-			std::vector<std::string> lines;
+			QList<QString> lines;
 			buildTreeViewRecursive(lines, tabs);
-			
-			std::string result;
-			for (const auto& line : lines)
-			{
-				result += line + "\n";
-			}			
-			return result;
+			return lines.join("\n");
 		}
 
 
 		
 
 	private:
-		void buildTreeViewRecursive(std::vector<std::string> &lines, int depth) const
+		void buildTreeViewRecursive(QList<QString> &lines, int depth) const
 		{
 			// Build prefix for current depth
-			std::string prefix;
+			QString prefix;
 			for (int i = 0; i < depth; i++)
 			{
 				prefix += " ";
@@ -259,7 +254,7 @@ namespace DDD
 			// Add title if at root level (depth == 0)
 			if (depth == 0)
 			{
-				lines.push_back(m_title + " : " + (isValid() ? "Valid" : "Invalid"));
+				lines.push_back(QString::fromStdString(m_title + " : " + (isValid() ? "Valid" : "Invalid")));
 			}
 
 			// Calculate total items (texts + children)
@@ -272,8 +267,8 @@ namespace DDD
 				currentItem++;
 				bool isLast = (currentItem == totalItems);
 
-				std::string branch = isLast ? " └ " : " ├ ";
-				lines.push_back(prefix + branch + text);
+				QString branch = isLast ? " └ " : " ├ ";
+				lines.push_back(prefix + branch + QString::fromStdString(text));
 			}
 
 			// Add all children recursively
@@ -282,14 +277,14 @@ namespace DDD
 				currentItem++;
 				bool isLast = (currentItem == totalItems);
 
-				std::string branch = isLast ? " └ " : " ├ ";
-				lines.push_back(prefix + branch + m_subResults[i].m_title + " : " + (m_subResults[i].isValid() ? "Valid" : "Invalid"));
+				QString branch = isLast ? " └ " : " ├ ";
+				lines.push_back(prefix + branch + QString::fromStdString(m_subResults[i].m_title + " : " + (m_subResults[i].isValid() ? "Valid" : "Invalid")));
 
 				// Build continuation prefix for child's content
-				std::string childPrefix = prefix + (isLast ? "  " : " │");
+				QString childPrefix = prefix + (isLast ? "  " : " │");
 
 				// Recursively process child with modified prefix handling
-				std::vector<std::string> childLines;
+				QList<QString> childLines;
 				m_subResults[i].buildTreeViewRecursive(childLines, 1); // Start child at depth 1
 
 				// Add child lines with proper prefix
