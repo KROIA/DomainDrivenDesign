@@ -229,11 +229,37 @@ namespace DDD
 		{
 			return jsonToString(toJson());
 		}
+		std::string toTooltipText() const
+		{
+			int tabs = 0;
+			std::vector<std::string> lines;
+			toTooltipText_internal(lines, tabs);
+			
+			std::string result;
+			for (const auto& line : lines)
+			{
+				result += line + "\n";
+			}			
+			return result;
+		}
 
 
 		
 
 	private:
+		void toTooltipText_internal(std::vector<std::string> &lines, int tabs) const
+		{
+			lines.push_back(std::string(tabs, ' ') +" - " + m_title + " : " + (isValid() ? "Valid" : "Invalid"));
+			for (const auto& message : m_messages)
+			{
+				lines.push_back(std::string(tabs, ' ') + "   - " + message + "\n");
+			}
+			for (const auto& subResult : m_subResults)
+			{
+				subResult.toTooltipText_internal(lines, tabs + 1);
+			}
+		}
+
 		std::string m_title;
 		Status m_status{ Status::Valid };
 		std::vector<std::string> m_messages;
