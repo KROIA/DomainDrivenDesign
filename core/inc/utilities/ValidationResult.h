@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "DDD_base.h"
 #include <vector>
 #include "model/Aggregate.h"
@@ -229,11 +229,11 @@ namespace DDD
 		{
 			return jsonToString(toJson());
 		}
-		std::string toTooltipText() const
+		std::string getTreeViewString() const
 		{
 			int tabs = 0;
 			std::vector<std::string> lines;
-			toTooltipText_internal(lines, tabs);
+			buildTreeViewRecursive(lines, tabs);
 			
 			std::string result;
 			for (const auto& line : lines)
@@ -247,16 +247,60 @@ namespace DDD
 		
 
 	private:
-		void toTooltipText_internal(std::vector<std::string> &lines, int tabs) const
+		void buildTreeViewRecursive(std::vector<std::string> &lines, int depth) const
 		{
-			lines.push_back(std::string(tabs, ' ') +" - " + m_title + " : " + (isValid() ? "Valid" : "Invalid"));
-			for (const auto& message : m_messages)
+			// Build prefix for current depth
+			std::string prefix;
+			for (int i = 0; i < depth; i++)
 			{
-				lines.push_back(std::string(tabs, ' ') + "   - " + message + "\n");
+				prefix += " ";
 			}
-			for (const auto& subResult : m_subResults)
+
+			// Add title if at root level (depth == 0)
+			if (depth == 0)
 			{
-				subResult.toTooltipText_internal(lines, tabs + 1);
+				lines.push_back(m_title + " : " + (isValid() ? "Valid" : "Invalid"));
+			}
+
+			// Calculate total items (texts + children)
+			size_t totalItems = m_messages.size() + m_subResults.size();
+			size_t currentItem = 0;
+
+			// Add all texts first
+			for (const auto& text : m_messages)
+			{
+				currentItem++;
+				bool isLast = (currentItem == totalItems);
+
+				std::string branch = isLast ? " └ " : " ├ ";
+				lines.push_back(prefix + branch + text);
+			}
+
+			// Add all children recursively
+			for (size_t i = 0; i < m_subResults.size(); i++)
+			{
+				currentItem++;
+				bool isLast = (currentItem == totalItems);
+
+				std::string branch = isLast ? " └ " : " ├ ";
+				lines.push_back(prefix + branch + m_subResults[i].m_title + " : " + (m_subResults[i].isValid() ? "Valid" : "Invalid"));
+
+				// Build continuation prefix for child's content
+				std::string childPrefix = prefix + (isLast ? "  " : " │");
+
+				// Recursively process child with modified prefix handling
+				std::vector<std::string> childLines;
+				m_subResults[i].buildTreeViewRecursive(childLines, 1); // Start child at depth 1
+
+				// Add child lines with proper prefix
+				for (size_t j = 0; j < childLines.size(); j++)
+				{
+					// Skip the first line (title) as we already added it
+					if (j > 0)
+					{
+						lines.push_back(childPrefix + childLines[j]);
+					}
+				}
 			}
 		}
 
