@@ -20,23 +20,26 @@ namespace DDD
 			Valid,
 			Invalid
 		};
-		ValidationResult(const std::string &title)
+		ValidationResult(const std::string& title)
 			: m_title(title)
 			, m_status(Status::Valid)
-		{}
-		ValidationResult(const ValidationResult& other) 
+		{
+		}
+		ValidationResult(const ValidationResult& other)
 			: m_title(other.m_title)
 			, m_status(other.m_status)
 			, m_messages(other.m_messages)
 			, m_subResults(other.m_subResults)
-		{}
+		{
+		}
 		ValidationResult(ValidationResult&& other) noexcept
 			: m_title(std::move(other.m_title))
 			, m_status(std::move(other.m_status))
 			, m_messages(std::move(other.m_messages))
 			, m_subResults(std::move(other.m_subResults))
-		{}
-		ValidationResult(const std::string &title, const std::vector<ValidationResult> &subResults)
+		{
+		}
+		ValidationResult(const std::string& title, const std::vector<ValidationResult>& subResults)
 			: m_title(title)
 			, m_status(Status::Valid)
 			, m_subResults(subResults)
@@ -158,7 +161,7 @@ namespace DDD
 		}
 		Status addSubResult(const ValidationResult& subResult)
 		{
-			if(!subResult.isValid())
+			if (!subResult.isValid())
 			{
 				m_status = Status::Invalid;
 			}
@@ -180,7 +183,7 @@ namespace DDD
 				m_subResults.erase(m_subResults.begin() + index);
 			}
 			m_status = Status::Valid;
-			for(size_t i = 0; i < m_subResults.size(); ++i)
+			for (size_t i = 0; i < m_subResults.size(); ++i)
 			{
 				if (m_subResults[i].isInvalid())
 				{
@@ -239,10 +242,10 @@ namespace DDD
 		}
 
 
-		
+
 
 	private:
-		void buildTreeViewRecursive(QList<QString> &lines, int depth) const
+		void buildTreeViewRecursive(QList<QString>& lines, int depth) const
 		{
 			// Build prefix for current depth
 			QString prefix;
@@ -306,16 +309,16 @@ namespace DDD
 
 				// Recursively process child with modified prefix handling
 				QList<QString> childLines;
-				m_subResults[i].buildTreeViewRecursive(childLines, 1); // Start child at depth 1
+				m_subResults[i].buildTreeViewRecursive(childLines, depth + 1); // Start child at depth 1
 
 				// Add child lines with proper prefix
 				for (size_t j = 0; j < childLines.size(); j++)
 				{
 					// Skip the first line (title) as we already added it
-					if (j > 0)
-					{
-						lines.push_back(childPrefix + childLines[j]);
-					}
+					//if (j > 0)
+					//{
+					lines.push_back(childPrefix + childLines[j]);
+					//}
 				}
 			}
 		}
