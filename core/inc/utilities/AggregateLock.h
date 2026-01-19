@@ -12,6 +12,9 @@ namespace DDD
 		AggregateLock(AggregateLock&&) noexcept = default;
 		virtual ~AggregateLock() = default;
 
+		AggregateLock& operator=(const AggregateLock&) = default;
+		AggregateLock& operator=(AggregateLock&&) noexcept = default;
+
 		virtual std::string toString() = 0;
 
 		virtual void setAggregateID(const DDD::ID& ref) { m_lockedAggregateID = ref; }

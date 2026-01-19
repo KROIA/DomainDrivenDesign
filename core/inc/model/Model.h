@@ -1200,7 +1200,8 @@ namespace DDD
 	template <DerivedFromAggregate... Ts>
 	bool Model<Ts...>::onPersistenceDataChanged()
 	{
-		loadLockedObjects();
+		bool success = loadLockedObjects();
+		return success;
 	}
 
 	template <DerivedFromAggregate... Ts>
@@ -1216,6 +1217,7 @@ namespace DDD
 		else
 		{
 			m_lockedAggregates = m_persistence->getLocks();
+			return true;
 		}
 	}
 
@@ -1274,7 +1276,12 @@ namespace DDD
 		}
 		else
 		{
-			return m_persistence->lock(id);
+			if (m_persistence->lock(id))
+			{
+				loadLockedObjects();
+				return true;
+			}
+			return false;
 		}
 	}
 
@@ -1292,7 +1299,9 @@ namespace DDD
 		}
 		else
 		{
-			return m_persistence->lock(ids);
+			std::vector<bool> res = m_persistence->lock(ids);
+			loadLockedObjects();
+			return res;
 		}
 	}
 
@@ -1309,7 +1318,15 @@ namespace DDD
 		}
 		else
 		{
-			return m_persistence->unlock(id);
+			if (m_persistence->unlock(id))
+			{
+				std::erase_if(m_lockedAggregates.begin(), m_lockedAggregates.end(),
+					[&id](const std::shared_ptr<AggregateLock>& lock) {
+						return lock->getAggregateID() == id;
+					});
+				return true;
+			}
+			return false;
 		}
 	}
 
@@ -1326,7 +1343,19 @@ namespace DDD
 		}
 		else
 		{
-			return m_persistence->unlock(ids);
+			std::vector<bool> res = m_persistence->unlock(ids);
+			for (size_t i = 0; i < ids.size(); ++i)
+			{
+				if (res[i])
+				{
+					const ID& id = ids[i];
+					std::erase_if(m_lockedAggregates.begin(), m_lockedAggregates.end(),
+						[&id](const std::shared_ptr<AggregateLock>& lock) {
+							return lock->getAggregateID() == id;
+						});
+				}
+			}
+			return res;
 		}
 	}
 
