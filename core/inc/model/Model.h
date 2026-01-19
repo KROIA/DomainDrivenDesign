@@ -302,6 +302,9 @@ namespace DDD
 		bool load(const std::vector<ID>& ids);
 		bool loadMetadata(std::shared_ptr<MetadataContainer::MetaContext> context = nullptr);
 
+		bool onPersistenceDataChanged();
+		bool loadLockedObjects();
+
 		bool manualLockDatabase();
 		bool manualUnlockDatabase();
 		bool isDatabaseManuallyLocked() const;
@@ -377,6 +380,7 @@ namespace DDD
 		std::function<void(const std::vector<ID>&)> m_aggregateReplacedSignal;
 		std::function<void(const std::vector<ID>&)> m_aggregateRemovedSignal;
 
+		std::vector<std::shared_ptr<AggregateLock>> m_lockedAggregates;
 
 #if LOGGER_LIBRARY_AVAILABLE == 1
 		Log::LogObject* m_logger = nullptr;
@@ -1194,6 +1198,28 @@ namespace DDD
 	}
 
 	template <DerivedFromAggregate... Ts>
+	bool Model<Ts...>::onPersistenceDataChanged()
+	{
+		loadLockedObjects();
+	}
+
+	template <DerivedFromAggregate... Ts>
+	bool Model<Ts...>::loadLockedObjects()
+	{
+		if (!m_persistence)
+		{
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			if (m_logger) m_logger->error("No persistence layer attached to the model");
+#endif
+			return false;
+		}
+		else
+		{
+			m_lockedAggregates = m_persistence->getLocks();
+		}
+	}
+
+	template <DerivedFromAggregate... Ts>
 	bool Model<Ts...>::manualLockDatabase()
 	{
 		if (!m_persistence)
@@ -1333,7 +1359,13 @@ namespace DDD
 		}
 		else
 		{
-			return m_persistence->isLocked(id);
+			for (const auto& lock : m_lockedAggregates)
+			{
+				if (lock->getAggregateID() == id)
+					return true;
+			}
+			return false;
+			//return m_persistence->isLocked(id);
 		}
 	}
 
@@ -1349,7 +1381,8 @@ namespace DDD
 		}
 		else
 		{
-			return m_persistence->getLocks();
+			return m_lockedAggregates;
+			//return m_persistence->getLocks();
 		}
 	}
 
@@ -1365,7 +1398,13 @@ namespace DDD
 		}
 		else
 		{
-			return m_persistence->getLock(id);
+			for(const auto& lock : m_lockedAggregates)
+			{
+				if (lock->getAggregateID() == id)
+					return lock;
+			}
+			return nullptr;
+			//return m_persistence->getLock(id);
 		}
 	}
 
