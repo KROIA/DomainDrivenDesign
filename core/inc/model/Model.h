@@ -307,7 +307,9 @@ namespace DDD
 		bool isDatabaseManuallyLocked() const;
 
 		bool lockAggregate(const ID& id);
+		std::vector<bool> lockAggregate(const std::vector<ID>& id);
 		bool unlockAggregate(const ID& id);
+		std::vector<bool> unlockAggregate(const std::vector<ID>& id);
 		bool tryUnlockAggregateIfLocked(const ID& id);
 		bool isAggregateLocked(const ID& id) const;
 		std::vector<std::shared_ptr<AggregateLock>> getLockedAggregates() const;
@@ -1250,13 +1252,32 @@ namespace DDD
 		}
 	}
 
+
+	template <DerivedFromAggregate... Ts>
+	std::vector<bool> Model<Ts...>::lockAggregate(const std::vector<ID>& ids)
+	{
+		if (!m_persistence)
+		{
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			if (m_logger) 
+				m_logger->error("No persistence layer attached to the model");
+#endif
+			return std::vector<bool>(ids.size(), false);
+		}
+		else
+		{
+			return m_persistence->lock(ids);
+		}
+	}
+
 	template <DerivedFromAggregate... Ts>
 	bool Model<Ts...>::unlockAggregate(const ID& id)
 	{
 		if (!m_persistence)
 		{
 #if LOGGER_LIBRARY_AVAILABLE == 1
-			if (m_logger) m_logger->error("No persistence layer attached to the model");
+			if (m_logger) 
+				m_logger->error("No persistence layer attached to the model");
 #endif
 			return false;
 		}
@@ -1267,12 +1288,30 @@ namespace DDD
 	}
 
 	template <DerivedFromAggregate... Ts>
+	std::vector<bool> Model<Ts...>::unlockAggregate(const std::vector<ID>& ids)
+	{
+		if (!m_persistence)
+		{
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			if (m_logger) 
+				m_logger->error("No persistence layer attached to the model");
+#endif
+			return std::vector<bool>(ids.size(), false);
+		}
+		else
+		{
+			return m_persistence->unlock(ids);
+		}
+	}
+
+	template <DerivedFromAggregate... Ts>
 	bool Model<Ts...>::tryUnlockAggregateIfLocked(const ID& id)
 	{
 		if (!m_persistence)
 		{
 #if LOGGER_LIBRARY_AVAILABLE == 1
-			if (m_logger) m_logger->error("No persistence layer attached to the model");
+			if (m_logger) 
+				m_logger->error("No persistence layer attached to the model");
 #endif
 			return false;
 		}

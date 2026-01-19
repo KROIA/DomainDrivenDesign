@@ -244,10 +244,18 @@ public:
 	 {
 		 return false;
 	 }
+	 std::vector<bool> lock(const std::vector<DDD::ID>& ids) override
+	 {
+		 return std::vector<bool>(ids.size(), false);
+	 }
 
 	 bool unlock(const DDD::ID& id) override
 	 {
 		 return false;
+	 }
+	 std::vector<bool> unlock(const std::vector<DDD::ID>& ids) override
+	 {
+		 return std::vector<bool>(ids.size(), false);
 	 }
 	 bool tryUnlockIfLocked(const DDD::ID& id) override
 	 {

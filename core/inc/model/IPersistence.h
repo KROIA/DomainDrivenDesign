@@ -85,6 +85,20 @@ namespace DDD
 		virtual bool unlock(const ID& id) = 0;
 
 		/**
+		 * @brief Locks all aggregates in the ID-list.
+		 * @param id
+		 * @return true if the operation was successful, false otherwise, for each id
+		 */
+		virtual std::vector<bool> lock(const std::vector<ID>& ids) = 0;
+
+		/**
+		 * @brief Unlocks all aggregates in the ID-list.
+		 * @param id
+		 * @return true if the operation was successful, false otherwise, for each id
+		 */
+		virtual std::vector<bool> unlock(const std::vector<ID>& ids) = 0;
+
+		/**
 		 * @brief Tries to unlock an aggregate with the given id for the given user, 
 		 *        if the aggregate is locked.
 		 * @param id 
