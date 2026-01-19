@@ -8,8 +8,15 @@ namespace DDD
 	{
 	public:
 		AggregateLock() = default;
-		AggregateLock(const AggregateLock&) = default;
-		AggregateLock(AggregateLock&&) noexcept = default;
+		AggregateLock(const AggregateLock& other)
+			: m_lockedAggregateID(other.m_lockedAggregateID)
+		{
+			
+		}
+		AggregateLock(AggregateLock&& other) noexcept
+			: m_lockedAggregateID(other.m_lockedAggregateID)
+		{
+		}
 		virtual ~AggregateLock() = default;
 
 		AggregateLock& operator=(const AggregateLock&) = default;
