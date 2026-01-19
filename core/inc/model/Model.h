@@ -1200,7 +1200,8 @@ namespace DDD
 	template <DerivedFromAggregate... Ts>
 	bool Model<Ts...>::onPersistenceDataChanged()
 	{
-		loadLockedObjects();
+		bool success = loadLockedObjects();
+		return success;
 	}
 
 	template <DerivedFromAggregate... Ts>
@@ -1216,6 +1217,7 @@ namespace DDD
 		else
 		{
 			m_lockedAggregates = m_persistence->getLocks();
+			return true;
 		}
 	}
 
