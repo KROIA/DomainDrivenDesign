@@ -4,6 +4,7 @@
 #include "Service.h"
 #include "AggregateFactory.h"
 #include "utilities/UniqueIDDomain.h"
+#include "utilities/AggregateLock.h"
 #include "IPersistence.h"
 #include <variant>
 #include <array>
@@ -21,10 +22,10 @@ namespace DDD
 		class AggregateContainer
 		{
 		public:
-			AggregateContainer(UniqueIDDomain& domain, 
-				const std::function<void(const std::vector<ID>&)> &aggregateAddedSignal,
-				const std::function<void(const std::vector<ID>&)> &aggregateReplacedSignal,
-				const std::function<void(const std::vector<ID>&)> &aggregateRemovedSignal)
+			AggregateContainer(UniqueIDDomain& domain,
+				const std::function<void(const std::vector<ID>&)>& aggregateAddedSignal,
+				const std::function<void(const std::vector<ID>&)>& aggregateReplacedSignal,
+				const std::function<void(const std::vector<ID>&)>& aggregateRemovedSignal)
 				: m_repository(domain)
 				, m_aggregateAddedSignal(aggregateAddedSignal)
 				, m_aggregateReplacedSignal(aggregateReplacedSignal)
@@ -35,7 +36,7 @@ namespace DDD
 			void attachLogger(Log::LogObject* logger)
 			{
 				m_repository.attachLogger(logger);
-				Log::LoggerID id = (logger ? logger->getID(): 0);
+				Log::LoggerID id = (logger ? logger->getID() : 0);
 				if (m_factory)
 					m_factory->setLoggerParentID(id);
 			}
@@ -103,7 +104,7 @@ namespace DDD
 				{
 					if (m_repository.add(casted))
 					{
-						if(m_aggregateAddedSignal)
+						if (m_aggregateAddedSignal)
 							m_aggregateAddedSignal({ casted->getID() });
 						return true;
 					}
@@ -119,7 +120,7 @@ namespace DDD
 					{
 						if (m_repository.add(casted))
 						{
-							if(m_aggregateReplacedSignal)
+							if (m_aggregateReplacedSignal)
 								m_aggregateReplacedSignal({ casted->getID() });
 							return true;
 						}
@@ -132,7 +133,7 @@ namespace DDD
 			{
 				if (m_repository.remove(id))
 				{
-					if(m_aggregateRemovedSignal)
+					if (m_aggregateRemovedSignal)
 						m_aggregateRemovedSignal({ id });
 					return true;
 				}
@@ -147,7 +148,7 @@ namespace DDD
 			[[nodiscard]] std::vector<ID> getIDs() const { return m_repository.getIDs(); }
 			void clear() { m_repository.clear(); }
 
-			[[nodiscard]] size_t size() const 
+			[[nodiscard]] size_t size() const
 			{
 				return m_repository.size();
 			}
@@ -302,12 +303,17 @@ namespace DDD
 		bool load(const std::vector<ID>& ids);
 		bool loadMetadata(std::shared_ptr<MetadataContainer::MetaContext> context = nullptr);
 
+		bool onPersistenceDataChanged();
+		bool loadLockedObjects();
+
 		bool manualLockDatabase();
 		bool manualUnlockDatabase();
 		bool isDatabaseManuallyLocked() const;
 
 		bool lockAggregate(const ID& id);
+		std::vector<bool> lockAggregate(const std::vector<ID>& id);
 		bool unlockAggregate(const ID& id);
+		std::vector<bool> unlockAggregate(const std::vector<ID>& id);
 		bool tryUnlockAggregateIfLocked(const ID& id);
 		bool isAggregateLocked(const ID& id) const;
 		std::vector<std::shared_ptr<AggregateLock>> getLockedAggregates() const;
@@ -375,6 +381,7 @@ namespace DDD
 		std::function<void(const std::vector<ID>&)> m_aggregateReplacedSignal;
 		std::function<void(const std::vector<ID>&)> m_aggregateRemovedSignal;
 
+		std::vector<std::shared_ptr<AggregateLock>> m_lockedAggregates;
 
 #if LOGGER_LIBRARY_AVAILABLE == 1
 		Log::LogObject* m_logger = nullptr;
@@ -447,7 +454,7 @@ namespace DDD
 				}
 			}
 
-			
+
 			std::shared_ptr<SER> service = domain.createService<SER>();
 #if LOGGER_LIBRARY_AVAILABLE == 1
 			if (m_logger) m_logger->debug("Registering service: " + std::string(service->getName()));
@@ -1002,7 +1009,7 @@ namespace DDD
 		{
 			m_idDomain.setUniqueIDFor(aggregate);
 		}
-		else if(contains(id))
+		else if (contains(id))
 			return false;
 
 
@@ -1048,7 +1055,7 @@ namespace DDD
 				aggregate = nullptr;
 			}
 		}
-		if(newIDsCount > 0)
+		if (newIDsCount > 0)
 		{
 			std::vector<std::shared_ptr<IID>> newIDAggregates;
 			newIDAggregates.reserve(newIDsCount);
@@ -1072,7 +1079,7 @@ namespace DDD
 				for (size_t i = 0; i < aggregates.size(); ++i)
 				{
 					auto aggregate = aggregates[i];
-					if(aggregate == nullptr)
+					if (aggregate == nullptr)
 						continue;
 					if (obj.isAggregateTypeForThis(aggregate))
 						results[i] = obj.add(aggregate);
@@ -1192,6 +1199,30 @@ namespace DDD
 	}
 
 	template <DerivedFromAggregate... Ts>
+	bool Model<Ts...>::onPersistenceDataChanged()
+	{
+		bool success = loadLockedObjects();
+		return success;
+	}
+
+	template <DerivedFromAggregate... Ts>
+	bool Model<Ts...>::loadLockedObjects()
+	{
+		if (!m_persistence)
+		{
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			if (m_logger) m_logger->error("No persistence layer attached to the model");
+#endif
+			return false;
+		}
+		else
+		{
+			m_lockedAggregates = m_persistence->getLocks();
+			return true;
+		}
+	}
+
+	template <DerivedFromAggregate... Ts>
 	bool Model<Ts...>::manualLockDatabase()
 	{
 		if (!m_persistence)
@@ -1246,7 +1277,32 @@ namespace DDD
 		}
 		else
 		{
-			return m_persistence->lock(id);
+			if (m_persistence->lock(id))
+			{
+				loadLockedObjects();
+				return true;
+			}
+			return false;
+		}
+	}
+
+
+	template <DerivedFromAggregate... Ts>
+	std::vector<bool> Model<Ts...>::lockAggregate(const std::vector<ID>& ids)
+	{
+		if (!m_persistence)
+		{
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			if (m_logger)
+				m_logger->error("No persistence layer attached to the model");
+#endif
+			return std::vector<bool>(ids.size(), false);
+		}
+		else
+		{
+			std::vector<bool> res = m_persistence->lock(ids);
+			loadLockedObjects();
+			return res;
 		}
 	}
 
@@ -1256,13 +1312,51 @@ namespace DDD
 		if (!m_persistence)
 		{
 #if LOGGER_LIBRARY_AVAILABLE == 1
-			if (m_logger) m_logger->error("No persistence layer attached to the model");
+			if (m_logger)
+				m_logger->error("No persistence layer attached to the model");
 #endif
 			return false;
 		}
 		else
 		{
-			return m_persistence->unlock(id);
+			if (m_persistence->unlock(id))
+			{
+				std::erase_if(m_lockedAggregates,
+					[&id](const std::shared_ptr<AggregateLock>& lock) {
+						return lock->getAggregateID() == id;
+					});
+				return true;
+			}
+			return false;
+		}
+	}
+
+	template <DerivedFromAggregate... Ts>
+	std::vector<bool> Model<Ts...>::unlockAggregate(const std::vector<ID>& ids)
+	{
+		if (!m_persistence)
+		{
+#if LOGGER_LIBRARY_AVAILABLE == 1
+			if (m_logger)
+				m_logger->error("No persistence layer attached to the model");
+#endif
+			return std::vector<bool>(ids.size(), false);
+		}
+		else
+		{
+			std::vector<bool> res = m_persistence->unlock(ids);
+			for (size_t i = 0; i < ids.size(); ++i)
+			{
+				if (res[i])
+				{
+					const ID& id = ids[i];
+					std::erase_if(m_lockedAggregates,
+						[&id](const std::shared_ptr<AggregateLock>& lock) {
+							return lock->getAggregateID() == id;
+						});
+				}
+			}
+			return res;
 		}
 	}
 
@@ -1272,7 +1366,8 @@ namespace DDD
 		if (!m_persistence)
 		{
 #if LOGGER_LIBRARY_AVAILABLE == 1
-			if (m_logger) m_logger->error("No persistence layer attached to the model");
+			if (m_logger)
+				m_logger->error("No persistence layer attached to the model");
 #endif
 			return false;
 		}
@@ -1294,7 +1389,13 @@ namespace DDD
 		}
 		else
 		{
-			return m_persistence->isLocked(id);
+			for (const auto& lock : m_lockedAggregates)
+			{
+				if (lock->getAggregateID() == id)
+					return true;
+			}
+			return false;
+			//return m_persistence->isLocked(id);
 		}
 	}
 
@@ -1310,7 +1411,8 @@ namespace DDD
 		}
 		else
 		{
-			return m_persistence->getLocks();
+			return m_lockedAggregates;
+			//return m_persistence->getLocks();
 		}
 	}
 
@@ -1326,7 +1428,13 @@ namespace DDD
 		}
 		else
 		{
-			return m_persistence->getLock(id);
+			for (const auto& lock : m_lockedAggregates)
+			{
+				if (lock->getAggregateID() == id)
+					return lock;
+			}
+			return nullptr;
+			//return m_persistence->getLock(id);
 		}
 	}
 
@@ -1391,8 +1499,8 @@ namespace DDD
 		{
 			bool success = false;
 			std::shared_ptr<MetadataContainer::NewAggregateIDContext> context = std::make_shared<MetadataContainer::NewAggregateIDContext>();
-			if(loadMetadata(context))
-		//	if (m_persistence->load(m_metadata))
+			if (loadMetadata(context))
+				//	if (m_persistence->load(m_metadata))
 			{
 				ID highestID = m_metadata->getCurrentHighestID();
 				if (id > highestID && (id + amount) > highestID)
