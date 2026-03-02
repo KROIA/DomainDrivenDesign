@@ -21,9 +21,11 @@ namespace DDD
 	public:
 		explicit Aggregate()
 			: Entity(INVALID_ID)
+			, m_isInRepository(false)
 		{}
 		explicit Aggregate(const ID &id)
 			: Entity(id)
+			, m_isInRepository(false)
 		{}
 
 		Aggregate& operator=(const Aggregate& other) = delete;
