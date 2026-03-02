@@ -75,7 +75,7 @@ namespace DDD
 				{"Entity", entityData},
 			};
 		}
-		virtual std::string toString()
+		virtual std::string toString() const
 		{
 			return jsonToString(toJson());
 		}
