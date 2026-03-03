@@ -4,7 +4,8 @@
 #include <QObject>
 #include "utilities/IID.h"
 #include "utilities/Utilities.h"
-#include "utilities/IJsonSerializable.h"
+#include "utilities/IStringifyable.h"
+#include "utilities/IDebugJsonObject.h"
 #include "ValueObject.h"
 
 namespace DDD
@@ -26,7 +27,7 @@ namespace DDD
 	 *
 	 *   When the entity is marked for deletion, the entity gets removed automatically from the aggregate.
 	 */
-	class DDD_API Entity : public QObject, public IID, public IJsonSerializable
+	class DDD_API Entity : public QObject, public IID, public IDebugJsonObject, public IStringifyable
 	{
 		friend class Aggregate; // Allow Aggregate to access private members
 		Q_OBJECT
@@ -66,7 +67,7 @@ namespace DDD
 		 * 
 		 * @return QJsonObject containing the entity data
 		 */
-		QJsonObject toJson() const override
+		QJsonObject toDebugJsonObject() const override
 		{
 			QJsonObject entityData;
 			entityData["id"] = QString::fromStdString(getIDString());
@@ -75,9 +76,9 @@ namespace DDD
 				{"Entity", entityData},
 			};
 		}
-		virtual std::string toString() const
+		std::string toString() const override
 		{
-			return jsonToString(toJson());
+			return jsonToString(toDebugJsonObject());
 		}
 
 	signals:

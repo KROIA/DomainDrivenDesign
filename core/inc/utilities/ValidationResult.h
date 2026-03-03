@@ -3,8 +3,8 @@
 #include <vector>
 #include <QList>
 #include "model/Aggregate.h"
-#include "IJsonSerializable.h"
-
+#include "utilities/IStringifyable.h"
+#include "utilities/IDebugJsonObject.h"
 
 namespace DDD
 {
@@ -12,7 +12,7 @@ namespace DDD
 	 * @brief This class represents the result of a validation process.
 	 * A result can contain additional sub-results, creating a tree structure of validation results.
 	 */
-	class ValidationResult : public IJsonSerializable
+	class ValidationResult : public IDebugJsonObject, public IStringifyable
 	{
 	public:
 		enum class Status
@@ -194,7 +194,7 @@ namespace DDD
 			return m_status;
 		}
 
-		QJsonObject toJson() const override
+		QJsonObject toDebugJsonObject() const override
 		{
 			QJsonObject json;
 			switch (m_status)
@@ -223,7 +223,7 @@ namespace DDD
 				QJsonArray subResultsArray;
 				for (const auto& subResult : m_subResults)
 				{
-					subResultsArray.append(subResult.toJson());
+					subResultsArray.append(subResult.toDebugJsonObject());
 				}
 				json["subResults"] = subResultsArray;
 			}
@@ -231,7 +231,7 @@ namespace DDD
 		}
 		std::string toString() const
 		{
-			return jsonToString(toJson());
+			return jsonToString(toDebugJsonObject());
 		}
 		QString getTreeViewString() const
 		{
