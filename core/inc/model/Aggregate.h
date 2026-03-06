@@ -86,21 +86,8 @@ namespace DDD
 			return m_isInRepository;
 		}
 
-		QJsonObject toDebugJsonObject() const override
-		{
-			QJsonObject data = Entity::toDebugJsonObject();
-			QJsonObject aggregateData;
-			aggregateData["isRegistred"] = m_isInRepository;
-			// Add childs
-			QJsonArray entitiesArray;
-			for (const auto& entity : m_entities)
-			{
-				entitiesArray.append(entity.second->toDebugJsonObject());
-			}
-			aggregateData["ChildEntities"] = entitiesArray;
-			data["Aggregate"] = aggregateData;
-			return data;
-		}
+		QJsonObject toDebugJsonObject() const override;
+
 
 	signals:
 		void entityAdded(ID entityID);

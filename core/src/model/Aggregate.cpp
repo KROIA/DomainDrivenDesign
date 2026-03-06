@@ -1,4 +1,5 @@
 #include "model/Aggregate.h"
+#include <QJsonArray>
 
 namespace DDD
 {
@@ -60,6 +61,22 @@ namespace DDD
 		Logger::logWarning("Aggregate::removeEntity(): Entity with ID " + IID::getIDString(id) + " does not exist in this aggregate.");
 #endif
 		return nullptr;
+	}
+
+	QJsonObject Aggregate::toDebugJsonObject() const
+	{
+		QJsonObject data = Entity::toDebugJsonObject();
+		QJsonObject aggregateData;
+		aggregateData["isRegistred"] = m_isInRepository;
+		// Add childs
+		QJsonArray entitiesArray;
+		for (const auto& entity : m_entities)
+		{
+			entitiesArray.append(entity.second->toDebugJsonObject());
+		}
+		aggregateData["ChildEntities"] = entitiesArray;
+		data["Aggregate"] = aggregateData;
+		return data;
 	}
 	
 	[[nodiscard]] std::vector<std::shared_ptr<Entity>> Aggregate::getEntities() const

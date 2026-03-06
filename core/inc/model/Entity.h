@@ -32,13 +32,7 @@ namespace DDD
 		friend class Aggregate; // Allow Aggregate to access private members
 		Q_OBJECT
 	public:
-		Entity(const ID id)
-			: IID(id)
-			, m_alive(true)
-			, m_parent(nullptr) // Initialize parent to nullptr
-		{
-
-		}
+		Entity(const ID id);
 		~Entity() override = default;
 
 		Entity& operator=(const Entity& other) = delete;
@@ -67,19 +61,8 @@ namespace DDD
 		 * 
 		 * @return QJsonObject containing the entity data
 		 */
-		QJsonObject toDebugJsonObject() const override
-		{
-			QJsonObject entityData;
-			entityData["id"] = QString::fromStdString(getIDString());
-			entityData["alive"] = m_alive;
-			return QJsonObject{
-				{"Entity", entityData},
-			};
-		}
-		std::string toString() const override
-		{
-			return jsonToString(toDebugJsonObject());
-		}
+		QJsonObject toDebugJsonObject() const override;
+		std::string toString() const override;
 
 	signals:
 		void deleteMarked(ID entityID);

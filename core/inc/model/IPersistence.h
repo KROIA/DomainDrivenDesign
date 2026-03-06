@@ -5,7 +5,6 @@
 #include "model/MetadataContainer.h"
 
 
-
 namespace DDD
 {
 	class AggregateLock;
