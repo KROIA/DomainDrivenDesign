@@ -7,7 +7,10 @@ namespace DDD
 	class AggregateLock
 	{
 	public:
-		AggregateLock() = default;
+		AggregateLock()
+			: m_lockedAggregateID(DDD::INVALID_ID)
+		{
+		}
 		AggregateLock(const AggregateLock& other)
 			: m_lockedAggregateID(other.m_lockedAggregateID)
 		{
