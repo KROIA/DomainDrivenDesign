@@ -187,6 +187,24 @@ namespace DDD
 		return lines.join("\n");
 	}
 
+	ValidationResult ValidationResult::getReduced(Status keep) const
+	{
+		ValidationResult reduced(m_title);
+		reduced.m_status = m_status;
+		if (m_status == keep)
+		{
+			reduced.m_messages = m_messages;
+		}
+		for (const auto& subResult : m_subResults)
+		{
+			if (subResult.m_status == keep)
+			{
+				reduced.m_subResults.push_back(subResult.getReduced(keep));
+			}
+		}
+		return reduced;
+	}
+
 
 	void ValidationResult::buildTreeViewRecursive(QList<QString>& lines, int depth) const
 	{

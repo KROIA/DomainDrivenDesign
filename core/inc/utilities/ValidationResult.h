@@ -89,7 +89,7 @@ namespace DDD
 		QString getTreeViewString() const;
 
 
-
+		ValidationResult getReduced(Status keep) const;
 
 	private:
 		void buildTreeViewRecursive(QList<QString>& lines, int depth) const;
