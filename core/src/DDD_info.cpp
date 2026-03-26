@@ -167,9 +167,10 @@ namespace DDD
 		return widget;
 	}
 #else
-	QWidget* LibraryInfo::createInfoWidget(QWidget* parent)
+	QWidget* LibraryInfo::createInfoWidget(QWidget* parent, bool disableHyperlink)
 	{
 		DDD_UNUSED(parent);
+		DDD_UNUSED(disableHyperlink);
 		return nullptr;
 	}
 #endif
