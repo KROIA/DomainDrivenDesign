@@ -10,6 +10,16 @@ namespace DDD
 	{
 
 	}
+	bool Entity::operator==(const Entity& other) const
+	{
+		// Two entities are considered equal if they have the same ID and alive status
+		return getID() == other.getID() &&
+			m_alive == other.m_alive;
+	}
+	bool Entity::operator!=(const Entity& other) const
+	{
+		return !(*this == other);
+	}
 
 	QJsonObject Entity::toDebugJsonObject() const
 	{

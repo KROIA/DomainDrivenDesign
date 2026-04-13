@@ -3,6 +3,25 @@
 
 namespace DDD
 {
+	bool Aggregate::operator==(const Aggregate& other) const
+	{
+		if(Entity::operator!=(other))
+			return false;
+
+		if (m_entities.size() != other.m_entities.size())
+			return false;
+		for (const auto& [id, entity] : m_entities)
+		{
+			const auto it = other.m_entities.find(id);
+			if (it == other.m_entities.end() || *entity != *(it->second))
+				return false;
+		}
+		return true;
+	}
+	bool Aggregate::operator!=(const Aggregate& other) const
+	{
+		return !(*this == other);
+	}
 	Aggregate& Aggregate::operator=(Aggregate&& other) noexcept
 	{
 		Entity::operator=(std::move(other));

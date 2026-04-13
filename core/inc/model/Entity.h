@@ -35,6 +35,9 @@ namespace DDD
 		Entity(const ID id);
 		~Entity() override = default;
 
+		bool operator==(const Entity& other) const;
+		bool operator!=(const Entity& other) const;
+
 		Entity& operator=(const Entity& other) = delete;
 		Entity& operator=(Entity&& other) noexcept
 		{

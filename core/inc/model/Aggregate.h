@@ -28,6 +28,9 @@ namespace DDD
 			, m_isInRepository(false)
 		{}
 
+		bool operator==(const Aggregate& other) const;
+		bool operator!=(const Aggregate& other) const;
+
 		Aggregate& operator=(const Aggregate& other) = delete;
 		Aggregate& operator=(Aggregate&& other) noexcept;
 
