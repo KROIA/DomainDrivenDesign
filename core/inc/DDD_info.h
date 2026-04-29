@@ -6,6 +6,7 @@
 
 #include "DDD_global.h"
 #include "DDD_debug.h"
+#include "DDD_meta.h"
 
 #include <sstream>
 
@@ -53,15 +54,15 @@ namespace DDD
 		};
 
 
-		// Current version of the library
-		static constexpr int versionMajor				= 0;
-		static constexpr int versionMinor				= 0;
-		static constexpr int versionPatch				= 0;
+		// Current version of the library — driven by LIBRARY_VERSION in CMakeLists.txt
+		static constexpr int versionMajor				= DDD_VERSION_MAJOR;
+		static constexpr int versionMinor				= DDD_VERSION_MINOR;
+		static constexpr int versionPatch				= DDD_VERSION_PATCH;
 
 		static constexpr Version version{ versionMajor, versionMinor, versionPatch };
 
-		// Library name
-		static constexpr const char* name				= "DDD";
+		// Library name — driven by LIBRARY_NAME in CMakeLists.txt
+		static constexpr const char* name				= DDD_LIBRARY_NAME;
 		static constexpr const char* author				= "Alex Krieg";
 		static constexpr const char* email				= "";
 		static constexpr const char* website			= "";
