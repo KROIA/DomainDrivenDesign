@@ -1045,6 +1045,8 @@ namespace DDD
 		size_t newIDsCount = 0;
 		for (auto& aggregate : aggregates)
 		{
+			if (!aggregate)
+				continue;
 			ID id = aggregate->getID();
 			if (id == INVALID_ID)
 			{
@@ -1078,8 +1080,8 @@ namespace DDD
 			std::visit([&aggregates, &results](auto& obj) {
 				for (size_t i = 0; i < aggregates.size(); ++i)
 				{
-					auto aggregate = aggregates[i];
-					if (aggregate == nullptr)
+					auto& aggregate = aggregates[i];
+					if (!aggregate)
 						continue;
 					if (obj.isAggregateTypeForThis(aggregate))
 						results[i] = obj.add(aggregate);
