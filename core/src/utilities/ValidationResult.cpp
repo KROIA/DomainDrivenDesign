@@ -273,7 +273,9 @@ namespace DDD
 			m_subResults[i].buildTreeViewRecursive(childLines, depth + 1); // Start child at depth 1
 
 			// Add child lines with proper prefix
-			for (size_t j = 0; j < childLines.size(); j++)
+			// qsizetype, not size_t: QList::size() returns int on Qt 5 and the
+			// signed qsizetype on Qt 6, so an unsigned index warns (C4018 -> error).
+			for (qsizetype j = 0; j < childLines.size(); j++)
 			{
 				// Skip the first line (title) as we already added it
 				//if (j > 0)
